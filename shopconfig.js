@@ -77,10 +77,10 @@ const userFriendlyDateConfig = [
     theme: "default"
   },
   {
-    startDate: "3-28", 
-    endDate: "4-2", 
+    startDate: "4-20", 
+    endDate: "4-21", 
     items: [
-      { id: ["I007", "P003"], price: "500", offertext: "NINJA OFFER", theme: "4" },
+      { id: ["I007", "P003"], price: "1", offertext: "NINJA OFFER - NO JOKE BRO LOL", theme: "4" },
     ],
     theme: "default"
   },
