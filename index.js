@@ -206,7 +206,8 @@ function applyDiscount(items) {
   const numDiscounts = getRandomNumber(2, 3);
 
   // Shuffle the keys and pick the first 'numDiscounts' keys
-  const discountKeys = itemKeys.sort(() => 0.5 - Math.random()).slice(0, numDiscounts);
+  //const discountKeys = itemKeys.sort(() => 0.5 - Math.random()).slice(0, numDiscounts);
+  const discountKeys = ['1', '2', '3'];
 
   // Apply the discount
   discountKeys.forEach(key => {
