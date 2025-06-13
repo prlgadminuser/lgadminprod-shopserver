@@ -3,24 +3,29 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const cron = require("node-cron");
 const fs = require("fs");
 
-const { specialDateConfig, itemPrefixes, specialDateTheme, maxrotationcounter } = require('./shopconfig.js');
+const {
+  specialDateConfig,
+  itemPrefixes,
+  specialDateTheme,
+  maxrotationcounter,
+} = require("./config/shopconfig.js");
 
 const app = express();
 exports.app = app;
 
 const port = process.env.PORT || 3004;
 
-process.on("SIGINT", function () {
-  mongoose.connection.close(function () {
+process.on("SIGINT", () => {
+  // It looks like mongoose isn't actually imported here, so either import or remove this handler.
+  // Leaving as is per your original code
+  mongoose.connection.close(() => {
     console.log("Mongoose disconnected on app termination");
     process.exit(0);
   });
 });
 
-const password = process.env.DB_KEY || "8RLj5Vr3F6DRBAYc";
-const encodedPassword = encodeURIComponent(password);
-
-const uri = `mongodb+srv://Liquem:${encodedPassword}@cluster0.ed4zami.mongodb.net/?retryWrites=true&w=majority`;
+const uri =
+  "mongodb+srv://sr-server-user:I8u8a8iOBNkunxRK@cluster0.ed4zami.mongodb.net/?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -40,16 +45,16 @@ async function startServer() {
   }
 }
 
-
 const db = client.db("Cluster0");
-const PackItemsCollection = db.collection("packitems");
 const shopcollection = db.collection("serverconfig");
 
+const itemsFilePath = "./config/shopitems.txt";
+const previousRotationFilePath = "./tempdata/previous-rotation.txt";
+const lastUpdateTimestampFilePath = "./tempdata/last-update-timestamp.txt";
+const pricefile = "./config/items.txt";
+const itemsUsedInLastDaysFilePath = "./tempdata/items-used-in-last-days.json";
+const shopUpdateCounterFilePath = "./tempdata/shop-update-counter.json";
 
-const itemsFilePath = "shopitems.txt";
-const previousRotationFilePath = "previous-rotation.txt";
-const lastUpdateTimestampFilePath = "last-update-timestamp.txt";
-const pricefile = "items.txt";
 let lastUpdateTimestamp = null;
 
 function loadLastUpdateTimestamp() {
@@ -69,7 +74,6 @@ function saveLastUpdateTimestamp() {
   }
 }
 
-
 function shouldUpdateDailyRotation() {
   const now = new Date();
   const midnight = new Date();
@@ -79,7 +83,7 @@ function shouldUpdateDailyRotation() {
 }
 
 let availableItems = [];
-let dailyItems = [];
+let dailyItems = {};
 
 function loadAvailableItems() {
   try {
@@ -88,7 +92,6 @@ function loadAvailableItems() {
       .split("\n")
       .map((item) => item.trim())
       .filter(Boolean);
-
     console.log("Available items updated.");
   } catch (err) {
     console.error("Error reading items from file:", err);
@@ -111,16 +114,6 @@ function loadPreviousRotation() {
   }
 }
 
-function load1PreviousRotation() {
-  try {
-    const data = fs.readFileSync("previous-rotation.txt", "utf8");
-    return data.split("\n").map((item) => item.trim());
-  } catch (error) {
-    console.error("Error reading previous rotation file:", error.message);
-    return [];
-  }
-}
-
 function saveDailyRotation() {
   try {
     const lines = Object.values(dailyItems);
@@ -129,9 +122,6 @@ function saveDailyRotation() {
     console.error("Error saving daily rotation to file:", err);
   }
 }
-
-const itemsUsedInLastDaysFilePath = "items-used-in-last-days.json";
-const shopUpdateCounterFilePath = "shop-update-counter.json";
 
 function getItemsUsedInLastDays() {
   try {
@@ -189,33 +179,27 @@ function parseItem(item) {
 }
 
 function getRandomNumber(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function applyDiscount(items) {
-  // Get an array of the item keys
-  // const itemKeys = Object.keys(items).filter(key => items[key].price > 0);
-    const itemKeys = Object.keys(items);
+  const itemKeys = Object.keys(items);
 
-   itemKeys.forEach(key => {
-      const item = items[key];
-      item.currency = "coins";
+  itemKeys.forEach((key) => {
+    const item = items[key];
+    item.currency = "coins";
   });
 
-  // Determine how many items to discount (between 1 and 3)
   const numDiscounts = getRandomNumber(2, 3);
+  const discountRate = getRandomNumber(20, 30) / 100; // discount in percent
 
-  // Shuffle the keys and pick the first 'numDiscounts' keys
-  //const discountKeys = itemKeys.sort(() => 0.5 - Math.random()).slice(0, numDiscounts)k;
-  const discountKeys = ['1', '2', '3']; 
+  const discountKeys = itemKeys.sort(() => 0.5 - Math.random()).slice(0, numDiscounts);
 
-  // Apply the discount
-  discountKeys.forEach(key => {
-      const item = items[key];
-      const discountRate = 0.2; // 20% discount
-      item.normalprice = item.price;
-      item.price = Math.round(item.price * (1 - discountRate)); // Apply discount and round to nearest integer
-      item.offertext = "SPECIAL OFFER";
+  discountKeys.forEach((key) => {
+    const item = items[key];
+    item.normalprice = item.price;
+    item.price = Math.round(item.price * (1 - discountRate));
+    item.offertext = "SPECIAL OFFER";
   });
 
   return items;
@@ -224,7 +208,6 @@ function applyDiscount(items) {
 function processDailyItemsAndSaveToServer() {
   const itemPrices = loadItemPrices();
 
-  // Create dailyItemsWithPrices by mapping item IDs to their prices
   const dailyItemsWithPrices = Object.keys(dailyItems).reduce((result, key) => {
     const item = dailyItems[key];
     const { itemId } = parseItem(item);
@@ -239,22 +222,20 @@ function processDailyItemsAndSaveToServer() {
   const dateString = `${month}-${day}`;
   const theme = specialDateTheme[dateString] || undefined;
 
-  // Check for special items on the given date
-  const specialItems = Object.keys(specialDateConfig).filter(date => dateString === date)
-    .reduce((items, date) => {
-        return [...items, ...createKeyedItems(specialDateConfig[date])];
-    }, []);
+  // Get special items for today, if any
+  const specialItems = Object.keys(specialDateConfig)
+    .filter((date) => date === dateString)
+    .reduce((items, date) => [...items, ...createKeyedItems(specialDateConfig[date])], []);
 
-  // Apply discounts only to dailyItemsWithPrices
   const discountedDailyItems = applyDiscount(dailyItemsWithPrices);
 
-  // Re-key specialItems starting from key '1'
-  const rekeyedSpecialItems = Object.keys(specialItems).reduce((result, key, index) => {
-    result[index + 1] = specialItems[key];
+  // Re-key specialItems starting from '1'
+  const rekeyedSpecialItems = specialItems.reduce((result, item, index) => {
+    result[index + 1] = item;
     return result;
   }, {});
 
-  // Find the next key after the last special item key
+  // Next key after special items
   const nextKey = Object.keys(rekeyedSpecialItems).length + 1;
 
   // Re-key discountedDailyItems starting from nextKey
@@ -263,30 +244,19 @@ function processDailyItemsAndSaveToServer() {
     return result;
   }, {});
 
-  // Combine re-keyed special items and re-keyed daily items
   const finalItems = {
     ...rekeyedSpecialItems,
     ...rekeyedDailyItems,
   };
 
-  // Prepare the final document with combined items and theme
   const document = {
     _id: "dailyItems",
     items: finalItems,
     theme: theme || "default",
   };
 
-  // Save the final document to the database with upsert option
-  shopcollection.updateOne(
-    { _id: "dailyItems" },
-    { $set: document },
-    { upsert: true }
-  );
+  shopcollection.updateOne({ _id: "dailyItems" }, { $set: document }, { upsert: true });
 }
-
-
-
-
 
 function incrementShopUpdateCounter() {
   const counter = getShopUpdateCounter() + 1;
@@ -304,13 +274,14 @@ function selectDailyItems() {
 
   const previousRotationMap = getItemsUsedInLastDays();
   const previousRotation = Array.from(previousRotationMap.keys());
+
+  // Filter out items used in last days from available pool
   shuffledItems = shuffledItems.filter((item) => !previousRotation.includes(item));
 
   const shopUpdateCounter = getShopUpdateCounter();
 
   if (shopUpdateCounter > maxrotationcounter) {
-    const itemsUsedInLastDaysMap = new Map();
-    saveItemsUsedInLastDays(itemsUsedInLastDaysMap);
+    saveItemsUsedInLastDays(new Map());
     fs.writeFileSync(shopUpdateCounterFilePath, "0");
   }
 
@@ -318,9 +289,7 @@ function selectDailyItems() {
 
   for (let i = 0; i < itemPrefixes.length; i++) {
     const prefix = itemPrefixes[i];
-    const validItems = shuffledItems.filter(
-      (item) => item.startsWith(prefix) && !selectedItemsSet.has(item),
-    );
+    const validItems = shuffledItems.filter((item) => item.startsWith(prefix) && !selectedItemsSet.has(item));
 
     if (validItems.length > 0) {
       const randomIndex = Math.floor(Math.random() * validItems.length);
@@ -330,6 +299,7 @@ function selectDailyItems() {
       dailyItems[(i + 1).toString()] = selectedItem;
       selectedItemsSet.add(selectedItem);
 
+      // Remove selected item from shuffledItems
       const indexToRemove = shuffledItems.indexOf(selectedItem);
       if (indexToRemove !== -1) {
         shuffledItems.splice(indexToRemove, 1);
@@ -353,23 +323,12 @@ function cleanUpItem(item) {
   return item.replace(/\r/g, "");
 }
 
-function isSpecialDate() {
-  const today = new Date();
-  const month = today.getMonth() + 1;
-  const day = today.getDate();
-
-  return specialDateConfig[`${month}-${day}`] !== undefined;
-}
-
 function setSpecialDailyItems() {
-    selectDailyItems();
- 
+  selectDailyItems();
 }
+
 function createKeyedItems(items) {
-  // Return an array of items, so it's iterable
-  return items.map((item, index) => {
-    return { ...item};  // Assuming you want to include the key in the items
-  });
+  return items.map((item) => ({ ...item }));
 }
 
 function initializeItems() {
@@ -383,12 +342,13 @@ function initializeItems() {
   }
 }
 
-startServer().then(() => {
-  initializeItems();
-}).catch(error => {
-  console.error("Failed to connect to the database:", error);
-});
-
+startServer()
+  .then(() => {
+    initializeItems();
+  })
+  .catch((error) => {
+    console.error("Failed to connect to the database:", error);
+  });
 
 cron.schedule(
   "0 0 * * *",
@@ -403,13 +363,12 @@ cron.schedule(
   }
 );
 
-const currentTimestamp = new Date().getTime();
+const currentTimestamp = Date.now();
 console.log(currentTimestamp);
 
-
 app.use((err, req, res, next) => {
-  console.error('An error occurred:', err);
-  res.status(500).json({ error: 'Unexpected server error' });
+  console.error("An error occurred:", err);
+  res.status(500).json({ error: "Unexpected server error" });
 });
 
 app.listen(port, () => {
