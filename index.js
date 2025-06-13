@@ -39,7 +39,6 @@ const client = new MongoClient(uri, {
 async function startServer() {
   try {
     await client.connect();
-    console.log("Connected to MongoDB");
   } catch (err) {
     console.error("Error connecting to MongoDB:", err);
   }
@@ -364,7 +363,6 @@ cron.schedule(
 );
 
 const currentTimestamp = Date.now();
-console.log(currentTimestamp);
 
 app.use((err, req, res, next) => {
   console.error("An error occurred:", err);

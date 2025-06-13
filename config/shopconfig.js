@@ -17,14 +17,9 @@ function countLines(filePath) {
   }
 }
 // Example usage
-
 const lineCount = countLines('./config/shopitems.txt');
-
 const itemPrefixes = ["A", "B", "A", "B", "A", "B", "I", "P"];
-
 const maxrotationcounter = Math.floor(lineCount / itemPrefixes.length);
-
-console.log(maxrotationcounter)
 
 
 
@@ -48,17 +43,12 @@ function loadItemPrices() {
   }
 }
 
-// Initialize item prices
 const itemPrices = loadItemPrices();
 
-// Function to get the price for an item
 function getItemPrice(itemId) {
   return itemPrices.get(itemId) || null;
 }
 
-
-
-// Utility function to generate all dates between start and end date
  function generateDateRange(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -72,12 +62,9 @@ function getItemPrice(itemId) {
   return dates;
 }
 
-
-
-// Format date to MM-DD format
 function formatDate(date) {
-  const month = date.getMonth() + 1; // No padding
-  const day = date.getDate(); // No padding
+  const month = date.getMonth() + 1; 
+  const day = date.getDate(); 
   return `${month}-${day}`;
 }
 
@@ -87,6 +74,10 @@ function getExpirationTimestamp(endDate) {
   const expirationDate = new Date(year, month - 1, day, 23, 59, 59); // End of the day
   return expirationDate.getTime();
 }
+
+
+
+
 
 
 
