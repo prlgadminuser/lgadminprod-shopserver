@@ -1,200 +1,97 @@
 const express = require("express");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const cron = require("node-cron");
-const fs = require("fs");
+const fs = require("fs").promises;
+const path = require("path");
 
-const {
-  specialDateConfig,
-  itemPrefixes,
-  specialDateTheme,
-  maxrotationcounter,
-} = require("./config/shopconfig.js");
+const { specialDateConfig, itemPrefixes, specialDateTheme, maxrotationcounter } = require("./config/shopconfig.js");
+const {  } = require("./ENV.js");
 
 const app = express();
 exports.app = app;
-
 const port = process.env.PORT || 3004;
 
-process.on("SIGINT", () => {
-  // It looks like mongoose isn't actually imported here, so either import or remove this handler.
-  // Leaving as is per your original code
-  mongoose.connection.close(() => {
-    console.log("Mongoose disconnected on app termination");
-    process.exit(0);
-  });
-});
-
-const uri =
-  "mongodb+srv://sr-server-user:I8u8a8iOBNkunxRK@cluster0.ed4zami.mongodb.net/?retryWrites=true&w=majority";
-
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-    socketTimeoutMS: 30000,
-  },
-});
-
-async function startServer() {
-  try {
-    await client.connect();
-  } catch (err) {
-    console.error("Error connecting to MongoDB:", err);
-  }
-}
+const uri = MONGO_URI;
+const client = new MongoClient(uri, { serverApi: { version: ServerApiVersion.v1, strict: true, deprecationErrors: true, socketTimeoutMS: 30000 } });
 
 const db = client.db("Cluster0");
 const shopcollection = db.collection("serverconfig");
 
-const itemsFilePath = "./config/shopitems.txt";
-const previousRotationFilePath = "./tempdata/previous-rotation.txt";
-const lastUpdateTimestampFilePath = "./tempdata/last-update-timestamp.txt";
-const pricefile = "./config/items.txt";
-const itemsUsedInLastDaysFilePath = "./tempdata/items-used-in-last-days.json";
-const shopUpdateCounterFilePath = "./tempdata/shop-update-counter.json";
+const paths = {
+  itemsFile: "./config/shopitems.txt",
+  previousRotation: "./tempdata/previous-rotation.txt",
+  lastUpdateTimestamp: "./tempdata/last-update-timestamp.txt",
+  priceFile: "./config/items.txt",
+  itemsUsedInLastDays: "./tempdata/items-used-in-last-days.json",
+  shopUpdateCounter: "./tempdata/shop-update-counter.json"
+};
 
-let lastUpdateTimestamp = null;
+let lastUpdateTimestamp = 0;
+let availableItems = [];
+let dailyItems = {};
+let itemPrices = new Map();
+let itemsUsedInLastDays = new Map();
 
-function loadLastUpdateTimestamp() {
+async function readJSONFile(filePath, defaultValue = {}) {
   try {
-    const timestampData = fs.readFileSync(lastUpdateTimestampFilePath, "utf8");
-    lastUpdateTimestamp = parseInt(timestampData);
-  } catch (err) {
-    console.error("Error reading last update timestamp:", err);
+    const data = await fs.readFile(filePath, "utf8");
+    return JSON.parse(data);
+  } catch {
+    return defaultValue;
   }
 }
 
-function saveLastUpdateTimestamp() {
+async function writeJSONFile(filePath, data) {
   try {
-    fs.writeFileSync(lastUpdateTimestampFilePath, Date.now().toString());
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
   } catch (err) {
-    console.error("Error saving last update timestamp:", err);
+    console.error("Error writing file:", filePath, err);
   }
+}
+
+async function loadData() {
+  availableItems = (await fs.readFile(paths.itemsFile, "utf8"))
+    .split("\n")
+    .map((i) => i.trim())
+    .filter(Boolean);
+
+  dailyItems = {};
+  try {
+    const prevRotation = await fs.readFile(paths.previousRotation, "utf8");
+    prevRotation.split("\n").forEach((line, i) => {
+      if (line.trim()) dailyItems[(i + 1).toString()] = line.trim();
+    });
+  } catch {}
+
+  lastUpdateTimestamp = parseInt(await fs.readFile(paths.lastUpdateTimestamp, "utf8").catch(() => "0"), 10);
+
+  itemPrices = new Map();
+  const priceData = (await fs.readFile(paths.priceFile, "utf8")).split("\n").filter(Boolean);
+  priceData.forEach((line) => {
+    const [itemId, price] = line.split(":");
+    itemPrices.set(itemId, parseInt(price));
+  });
+
+  itemsUsedInLastDays = new Map(await readJSONFile(paths.itemsUsedInLastDays, []));
 }
 
 function shouldUpdateDailyRotation() {
-  const now = new Date();
   const midnight = new Date();
   midnight.setHours(0, 0, 0, 0);
-
-  return now > midnight && lastUpdateTimestamp < midnight.getTime();
+  return Date.now() > midnight.getTime() && lastUpdateTimestamp < midnight.getTime();
 }
 
-let availableItems = [];
-let dailyItems = {};
-
-function loadAvailableItems() {
-  try {
-    const fileData = fs.readFileSync(itemsFilePath, "utf8");
-    availableItems = fileData
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-    console.log("Available items updated.");
-  } catch (err) {
-    console.error("Error reading items from file:", err);
-  }
-}
-
-function loadPreviousRotation() {
-  try {
-    const fileData = fs.readFileSync(previousRotationFilePath, "utf8");
-    const lines = fileData.split("\n").filter((item) => item.trim() !== "");
-
-    dailyItems = {};
-    lines.forEach((line, index) => {
-      dailyItems[(index + 1).toString()] = line.trim();
-    });
-
-    console.log("Previous daily rotation loaded.");
-  } catch (err) {
-    console.error("Error reading previous daily rotation from file:", err);
-  }
-}
-
-function saveDailyRotation() {
-  try {
-    const lines = Object.values(dailyItems);
-    fs.writeFileSync(previousRotationFilePath, lines.join("\n"));
-  } catch (err) {
-    console.error("Error saving daily rotation to file:", err);
-  }
-}
-
-function getItemsUsedInLastDays() {
-  try {
-    const data = fs.readFileSync(itemsUsedInLastDaysFilePath, "utf8");
-    return new Map(JSON.parse(data));
-  } catch (error) {
-    console.error("Error reading items used in last days file:", error.message);
-    return new Map();
-  }
-}
-
-function saveItemsUsedInLastDays(itemsUsedInLastDaysMap) {
-  try {
-    const data = JSON.stringify(Array.from(itemsUsedInLastDaysMap.entries()));
-    fs.writeFileSync(itemsUsedInLastDaysFilePath, data);
-  } catch (error) {
-    console.error("Error saving items used in last days:", error.message);
-  }
-}
-
-function getShopUpdateCounter() {
-  try {
-    const data = fs.readFileSync(shopUpdateCounterFilePath, "utf8");
-    return parseInt(data) || 0;
-  } catch (error) {
-    console.error("Error reading shop update counter file:", error.message);
-    return 0;
-  }
-}
-
-function loadItemPrices() {
-  try {
-    const fileData = fs.readFileSync(pricefile, "utf8");
-    const items = fileData
-      .split("\n")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
-    const itemPrices = new Map();
-    items.forEach((item) => {
-      const { itemId, price } = parseItem(item);
-      itemPrices.set(itemId, parseInt(price));
-    });
-
-    return itemPrices;
-  } catch (err) {
-    console.error("Error reading item prices from file:", err);
-    return new Map();
-  }
-}
-
-function parseItem(item) {
-  const [itemId, price] = item.split(":");
-  return { itemId, price };
-}
-
-function getRandomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+function getRandomItem(array) {
+  return array[Math.floor(Math.random() * array.length)];
 }
 
 function applyDiscount(items) {
-  const itemKeys = Object.keys(items);
+  const keys = Object.keys(items);
+  const numDiscounts = Math.floor(Math.random() * 2) + 2; // 2 or 3
+  const discountRate = (Math.floor(Math.random() * 11) + 20) / 100;
 
-  itemKeys.forEach((key) => {
-    const item = items[key];
-    item.currency = "coins";
-  });
-
-  const numDiscounts = getRandomNumber(2, 3);
-  const discountRate = getRandomNumber(20, 30) / 100; // discount in percent
-
-  const discountKeys = itemKeys.sort(() => 0.5 - Math.random()).slice(0, numDiscounts);
-
-  discountKeys.forEach((key) => {
+  const shuffledKeys = [...keys].sort(() => 0.5 - Math.random());
+  shuffledKeys.slice(0, numDiscounts).forEach((key) => {
     const item = items[key];
     item.normalprice = item.price;
     item.price = Math.round(item.price * (1 - discountRate));
@@ -204,171 +101,76 @@ function applyDiscount(items) {
   return items;
 }
 
-function processDailyItemsAndSaveToServer() {
-  const itemPrices = loadItemPrices();
-
-  const dailyItemsWithPrices = Object.keys(dailyItems).reduce((result, key) => {
-    const item = dailyItems[key];
-    const { itemId } = parseItem(item);
-    const price = itemPrices.get(itemId);
-    result[key] = { itemId, price };
-    return result;
-  }, {});
-
-  const date = new Date();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dateString = `${month}-${day}`;
-  const theme = specialDateTheme[dateString] || undefined;
-
-  // Get special items for today, if any
-  const specialItems = Object.keys(specialDateConfig)
-    .filter((date) => date === dateString)
-    .reduce((items, date) => [...items, ...createKeyedItems(specialDateConfig[date])], []);
-
-  const discountedDailyItems = applyDiscount(dailyItemsWithPrices);
-
-  // Re-key specialItems starting from '1'
-  const rekeyedSpecialItems = specialItems.reduce((result, item, index) => {
-    result[index + 1] = item;
-    return result;
-  }, {});
-
-  // Next key after special items
-  const nextKey = Object.keys(rekeyedSpecialItems).length + 1;
-
-  // Re-key discountedDailyItems starting from nextKey
-  const rekeyedDailyItems = Object.keys(discountedDailyItems).reduce((result, key, index) => {
-    result[nextKey + index] = discountedDailyItems[key];
-    return result;
-  }, {});
-
-  const finalItems = {
-    ...rekeyedSpecialItems,
-    ...rekeyedDailyItems,
-  };
-
-  const document = {
-    _id: "dailyItems",
-    items: finalItems,
-    theme: theme || "default",
-  };
-
-  shopcollection.updateOne({ _id: "dailyItems" }, { $set: document }, { upsert: true });
+async function saveDailyRotation() {
+  await fs.writeFile(paths.previousRotation, Object.values(dailyItems).join("\n"));
+  await fs.writeFile(paths.lastUpdateTimestamp, Date.now().toString());
+  await writeJSONFile(paths.itemsUsedInLastDays, Array.from(itemsUsedInLastDays.entries()));
 }
 
-function incrementShopUpdateCounter() {
-  const counter = getShopUpdateCounter() + 1;
-  try {
-    fs.writeFileSync(shopUpdateCounterFilePath, counter.toString());
-  } catch (error) {
-    console.error("Error incrementing shop update counter:", error.message);
+async function selectDailyItems() {
+  const selectedItems = new Set();
+  const availableSet = new Set(availableItems);
+
+  const counter = parseInt(await fs.readFile(paths.shopUpdateCounter, "utf8").catch(() => "0"), 10);
+  if (counter > maxrotationcounter) {
+    itemsUsedInLastDays.clear();
+    await fs.writeFile(paths.shopUpdateCounter, "0");
   }
-}
-
-function selectDailyItems() {
-  let shuffledItems = [...availableItems];
-  dailyItems = {};
-  const selectedItemsSet = new Set();
-
-  const previousRotationMap = getItemsUsedInLastDays();
-  const previousRotation = Array.from(previousRotationMap.keys());
-
-  // Filter out items used in last days from available pool
-  shuffledItems = shuffledItems.filter((item) => !previousRotation.includes(item));
-
-  const shopUpdateCounter = getShopUpdateCounter();
-
-  if (shopUpdateCounter > maxrotationcounter) {
-    saveItemsUsedInLastDays(new Map());
-    fs.writeFileSync(shopUpdateCounterFilePath, "0");
-  }
-
-  const now = new Date();
 
   for (let i = 0; i < itemPrefixes.length; i++) {
     const prefix = itemPrefixes[i];
-    const validItems = shuffledItems.filter((item) => item.startsWith(prefix) && !selectedItemsSet.has(item));
+    const validItems = [...availableSet].filter((item) => item.startsWith(prefix) && !selectedItems.has(item) && !itemsUsedInLastDays.has(item));
 
-    if (validItems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * validItems.length);
-      let selectedItem = validItems[randomIndex];
-      selectedItem = cleanUpItem(selectedItem);
+    if (!validItems.length) return console.error(`Not enough items with prefix ${prefix}`);
 
-      dailyItems[(i + 1).toString()] = selectedItem;
-      selectedItemsSet.add(selectedItem);
-
-      // Remove selected item from shuffledItems
-      const indexToRemove = shuffledItems.indexOf(selectedItem);
-      if (indexToRemove !== -1) {
-        shuffledItems.splice(indexToRemove, 1);
-      }
-
-      const itemsUsedInLastDaysMap = getItemsUsedInLastDays();
-      itemsUsedInLastDaysMap.set(selectedItem, now.getTime());
-      saveItemsUsedInLastDays(itemsUsedInLastDaysMap);
-    } else {
-      console.error(`Not enough available items with prefix ${prefix}.`);
-      return;
-    }
+    const selected = getRandomItem(validItems);
+    dailyItems[(i + 1).toString()] = selected;
+    selectedItems.add(selected);
+    itemsUsedInLastDays.set(selected, Date.now());
+    availableSet.delete(selected);
   }
 
-  saveDailyRotation();
-  incrementShopUpdateCounter();
-  processDailyItemsAndSaveToServer();
+  await saveDailyRotation();
+  await processDailyItemsAndSaveToServer();
 }
 
-function cleanUpItem(item) {
-  return item.replace(/\r/g, "");
+async function processDailyItemsAndSaveToServer() {
+  const dailyWithPrices = Object.fromEntries(
+    Object.entries(dailyItems).map(([key, item]) => {
+      const { itemId } = { itemId: item };
+      return [key, { itemId, price: itemPrices.get(itemId) }];
+    })
+  );
+
+  const dateStr = `${new Date().getMonth() + 1}-${new Date().getDate()}`;
+  const theme = specialDateTheme[dateStr] || "default";
+
+  const specialItems = (specialDateConfig[dateStr] || []).map((item, i) => ({ ...item }));
+
+  const finalItems = {
+    ...Object.fromEntries(specialItems.map((i, idx) => [idx + 1, i])),
+    ...Object.fromEntries(Object.entries(applyDiscount(dailyWithPrices)).map(([k, v], i) => [specialItems.length + i + 1, v]))
+  };
+
+  await shopcollection.updateOne({ _id: "dailyItems" }, { $set: { _id: "dailyItems", items: finalItems, theme } }, { upsert: true });
 }
 
-function setSpecialDailyItems() {
-  selectDailyItems();
-}
+async function init() {
+  await client.connect();
+  await loadData();
+  if (shouldUpdateDailyRotation()) await selectDailyItems();
 
-function createKeyedItems(items) {
-  return items.map((item) => ({ ...item }));
-}
-
-function initializeItems() {
-  loadAvailableItems();
-  loadPreviousRotation();
-  loadLastUpdateTimestamp();
-
-  if (shouldUpdateDailyRotation()) {
-    setSpecialDailyItems();
-    saveLastUpdateTimestamp();
-  }
-}
-
-startServer()
-  .then(() => {
-    initializeItems();
-  })
-  .catch((error) => {
-    console.error("Failed to connect to the database:", error);
-  });
-
-cron.schedule(
-  "0 0 * * *",
-  () => {
-    setSpecialDailyItems();
-    saveLastUpdateTimestamp();
+  cron.schedule("0 0 * * *", async () => {
+    await selectDailyItems();
     console.log("Daily rotation updated.");
-  },
-  {
-    scheduled: true,
-    timezone: "UTC",
-  }
-);
-
-const currentTimestamp = Date.now();
+  }, { scheduled: true, timezone: "UTC" });
+}
 
 app.use((err, req, res, next) => {
   console.error("An error occurred:", err);
   res.status(500).json({ error: "Unexpected server error" });
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+app.listen(port, () => console.log(`Server running on port ${port}`));
+
+init().catch(console.error);
