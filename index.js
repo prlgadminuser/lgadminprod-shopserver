@@ -134,62 +134,25 @@ async function selectDailyItems() {
   await processDailyItemsAndSaveToServer();
 }
 
-function processDailyItemsAndSaveToServer() {
-  // Load prices from file
-  let itemPrices = new Map();
-  try {
-    const fileData = fs.readFileSync(pricefile, "utf8");
-    fileData.split("\n").filter(Boolean).forEach((line) => {
-      const [itemId, price] = line.split(":");
-      itemPrices.set(itemId, parseInt(price, 10));
-    });
-  } catch (err) {
-    console.error("Error reading item prices from file:", err);
-  }
-
-  // Combine dailyItems with prices and default currency
+async function processDailyItemsAndSaveToServer() {
   const dailyWithPrices = Object.fromEntries(
     Object.entries(dailyItems).map(([key, item]) => {
-      const { itemId } = { itemId: item }; // here item itself is the id
+      const { itemId } = { itemId: item };
       return [key, { itemId, price: itemPrices.get(itemId), currency: "coins" }];
     })
   );
 
-  const date = new Date();
-  const dateString = `${date.getMonth() + 1}-${date.getDate()}`;
-  const theme = specialDateTheme[dateString] || "default";
+  const dateStr = `${new Date().getMonth() + 1}-${new Date().getDate()}`;
+  const theme = specialDateTheme[dateStr] || "default";
 
-  // Special items for today
-  const specialItems = (specialDateConfig[dateString] || []).map((item) => ({
-    ...item,
-    currency: "coins",
-  }));
-
-  // Apply discounts to daily items
-  const discountedDailyItems = applyDiscount(dailyWithPrices);
-
-  // Re-key special items starting from 1
-  const rekeyedSpecialItems = Object.fromEntries(
-    specialItems.map((item, index) => [index + 1, item])
-  );
-
-  // Re-key discounted daily items starting after special items
-  const nextKey = Object.keys(rekeyedSpecialItems).length + 1;
-  const rekeyedDailyItems = Object.fromEntries(
-    Object.entries(discountedDailyItems).map(([key, item], index) => [nextKey + index, item])
-  );
+  const specialItems = (specialDateConfig[dateStr] || []).map((item, i) => ({ ...item }));
 
   const finalItems = {
-    ...rekeyedSpecialItems,
-    ...rekeyedDailyItems,
+    ...Object.fromEntries(specialItems.map((i, idx) => [idx + 1, i])),
+    ...Object.fromEntries(Object.entries(applyDiscount(dailyWithPrices)).map(([k, v], i) => [specialItems.length + i + 1, v]))
   };
 
-  // Save to MongoDB
-  shopcollection.updateOne(
-    { _id: "dailyItems" },
-    { $set: { _id: "dailyItems", items: finalItems, theme } },
-    { upsert: true }
-  );
+  await shopcollection.updateOne({ _id: "dailyItems" }, { $set: { _id: "dailyItems", items: finalItems, theme } }, { upsert: true });
 }
 
 
