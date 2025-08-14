@@ -5,7 +5,7 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const { specialDateConfig, itemPrefixes, specialDateTheme, maxrotationcounter } = require("./config/shopconfig.js");
-const {  } = require("./ENV.js");
+const { MONGO_URI } = require("./ENV.js");
 
 const app = express();
 exports.app = app;
