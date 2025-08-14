@@ -135,58 +135,63 @@ async function selectDailyItems() {
 }
 
 function processDailyItemsAndSaveToServer() {
-  const itemPrices = loadItemPrices();
+  // Load prices from file
+  let itemPrices = new Map();
+  try {
+    const fileData = fs.readFileSync(pricefile, "utf8");
+    fileData.split("\n").filter(Boolean).forEach((line) => {
+      const [itemId, price] = line.split(":");
+      itemPrices.set(itemId, parseInt(price, 10));
+    });
+  } catch (err) {
+    console.error("Error reading item prices from file:", err);
+  }
 
-  const dailyItemsWithPrices = Object.keys(dailyItems).reduce((result, key) => {
-    const item = dailyItems[key];
-    const { itemId } = parseItem(item);
-    const price = itemPrices.get(itemId);
-
-    // Set default currency for all items
-    result[key] = { itemId, price, currency: "coins" };
-    return result;
-  }, {});
+  // Combine dailyItems with prices and default currency
+  const dailyWithPrices = Object.fromEntries(
+    Object.entries(dailyItems).map(([key, item]) => {
+      const { itemId } = { itemId: item }; // here item itself is the id
+      return [key, { itemId, price: itemPrices.get(itemId), currency: "coins" }];
+    })
+  );
 
   const date = new Date();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  const dateString = `${month}-${day}`;
-  const theme = specialDateTheme[dateString] || undefined;
+  const dateString = `${date.getMonth() + 1}-${date.getDate()}`;
+  const theme = specialDateTheme[dateString] || "default";
 
-  // Special items
-  const specialItems = Object.keys(specialDateConfig)
-    .filter((date) => date === dateString)
-    .reduce((items, date) => [...items, ...createKeyedItems(specialDateConfig[date])], []);
+  // Special items for today
+  const specialItems = (specialDateConfig[dateString] || []).map((item) => ({
+    ...item,
+    currency: "coins",
+  }));
 
-  const discountedDailyItems = applyDiscount(dailyItemsWithPrices);
+  // Apply discounts to daily items
+  const discountedDailyItems = applyDiscount(dailyWithPrices);
 
-  // Re-key special items starting from '1' and set currency
-  const rekeyedSpecialItems = specialItems.reduce((result, item, index) => {
-    result[index + 1] = { ...item, currency: "coins" };
-    return result;
-  }, {});
+  // Re-key special items starting from 1
+  const rekeyedSpecialItems = Object.fromEntries(
+    specialItems.map((item, index) => [index + 1, item])
+  );
 
+  // Re-key discounted daily items starting after special items
   const nextKey = Object.keys(rekeyedSpecialItems).length + 1;
-
-  // Re-key discounted daily items starting from nextKey
-  const rekeyedDailyItems = Object.keys(discountedDailyItems).reduce((result, key, index) => {
-    result[nextKey + index] = discountedDailyItems[key];
-    return result;
-  }, {});
+  const rekeyedDailyItems = Object.fromEntries(
+    Object.entries(discountedDailyItems).map(([key, item], index) => [nextKey + index, item])
+  );
 
   const finalItems = {
     ...rekeyedSpecialItems,
     ...rekeyedDailyItems,
   };
 
-  const document = {
-    _id: "dailyItems",
-    items: finalItems,
-    theme: theme || "default",
-  };
-
-  shopcollection.updateOne({ _id: "dailyItems" }, { $set: document }, { upsert: true });
+  // Save to MongoDB
+  shopcollection.updateOne(
+    { _id: "dailyItems" },
+    { $set: { _id: "dailyItems", items: finalItems, theme } },
+    { upsert: true }
+  );
 }
+
 
 
 async function init() {
