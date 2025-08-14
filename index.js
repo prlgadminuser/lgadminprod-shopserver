@@ -134,26 +134,60 @@ async function selectDailyItems() {
   await processDailyItemsAndSaveToServer();
 }
 
-async function processDailyItemsAndSaveToServer() {
-  const dailyWithPrices = Object.fromEntries(
-    Object.entries(dailyItems).map(([key, item]) => {
-      const { itemId } = { itemId: item };
-      return [key, { itemId, price: itemPrices.get(itemId) }];
-    })
-  );
+function processDailyItemsAndSaveToServer() {
+  const itemPrices = loadItemPrices();
 
-  const dateStr = `${new Date().getMonth() + 1}-${new Date().getDate()}`;
-  const theme = specialDateTheme[dateStr] || "default";
+  const dailyItemsWithPrices = Object.keys(dailyItems).reduce((result, key) => {
+    const item = dailyItems[key];
+    const { itemId } = parseItem(item);
+    const price = itemPrices.get(itemId);
 
-  const specialItems = (specialDateConfig[dateStr] || []).map((item, i) => ({ ...item }));
+    // Set default currency for all items
+    result[key] = { itemId, price, currency: "coins" };
+    return result;
+  }, {});
+
+  const date = new Date();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dateString = `${month}-${day}`;
+  const theme = specialDateTheme[dateString] || undefined;
+
+  // Special items
+  const specialItems = Object.keys(specialDateConfig)
+    .filter((date) => date === dateString)
+    .reduce((items, date) => [...items, ...createKeyedItems(specialDateConfig[date])], []);
+
+  const discountedDailyItems = applyDiscount(dailyItemsWithPrices);
+
+  // Re-key special items starting from '1' and set currency
+  const rekeyedSpecialItems = specialItems.reduce((result, item, index) => {
+    result[index + 1] = { ...item, currency: "coins" };
+    return result;
+  }, {});
+
+  const nextKey = Object.keys(rekeyedSpecialItems).length + 1;
+
+  // Re-key discounted daily items starting from nextKey
+  const rekeyedDailyItems = Object.keys(discountedDailyItems).reduce((result, key, index) => {
+    result[nextKey + index] = discountedDailyItems[key];
+    return result;
+  }, {});
 
   const finalItems = {
-    ...Object.fromEntries(specialItems.map((i, idx) => [idx + 1, i])),
-    ...Object.fromEntries(Object.entries(applyDiscount(dailyWithPrices)).map(([k, v], i) => [specialItems.length + i + 1, v]))
+    ...rekeyedSpecialItems,
+    ...rekeyedDailyItems,
   };
 
-  await shopcollection.updateOne({ _id: "dailyItems" }, { $set: { _id: "dailyItems", items: finalItems, theme } }, { upsert: true });
+  const document = {
+    _id: "dailyItems",
+    items: finalItems,
+    theme: theme || "default",
+  };
+
+  shopcollection.updateOne({ _id: "dailyItems" }, { $set: document }, { upsert: true });
 }
+
 
 async function init() {
   await client.connect();
