@@ -19,7 +19,7 @@ function countLines(filePath) {
 // Example usage
 const lineCount = countLines('./config/shopitems.txt');
 const itemPrefixes = ["A", "B", "A", "B", "A", "B", "I", "P"];
-const maxrotationcounter = Math.floor(lineCount / itemPrefixes.length);
+const maxrotationcounter = Math.floor(lineCount / itemPrefixes.length) - 2;
 
 
 
@@ -179,5 +179,6 @@ module.exports = {
   specialDateTheme,
   maxrotationcounter,
 };
+
 
 
