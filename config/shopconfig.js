@@ -103,7 +103,7 @@ const userFriendlyDateConfig = [
     startDate: "9-1", 
     endDate: "9-3", 
     items: [
-      { id: ["I013", "A033"], price: "500", offertext: "ARCADE OFFER", theme: "4" },
+      { id: ["I013", "A033"], price: "500", offertext: "ARCADE OFFER", theme: "5" },
     ],
     theme: "default"
   },
@@ -179,6 +179,7 @@ module.exports = {
   specialDateTheme,
   maxrotationcounter,
 };
+
 
 
 
