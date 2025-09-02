@@ -92,24 +92,24 @@ const userFriendlyDateConfig = [
     theme: "default"
   },
   {
-    startDate: "4-19", 
-    endDate: "4-20", 
+    startDate: "9-1", 
+    endDate: "9-3", 
     items: [
       { id: ["I007", "P003"], price: "1", offertext: "NINJA OFFER - NO JOKE BRO LOL", theme: "4" },
     ],
     theme: "default"
   },
   {
-    startDate: "3-28", 
-    endDate: "4-2", 
+    startDate: "9-1", 
+    endDate: "9-3", 
     items: [
       { id: ["I013", "A033"], price: "500", offertext: "ARCADE OFFER", theme: "4" },
     ],
     theme: "default"
   },
   {
-    startDate: "10-28", 
-    endDate: "11-1", 
+    startDate: "9-1", 
+    endDate: "9-3", 
     items: [
       { id: "I006", price: "250", offertext: "TRICK OR TREAT BANNER!", theme: "3" },
       { id: ["A038", "B029"], price: "300", offertext: "SKILLEDWEEN OFFER", normalprice: "350", theme: "3" },
@@ -179,6 +179,7 @@ module.exports = {
   specialDateTheme,
   maxrotationcounter,
 };
+
 
 
 
