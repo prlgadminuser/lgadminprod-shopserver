@@ -3,7 +3,7 @@ const fs = require('fs');
 const priceFilePath = "./config/items.txt";
 
 const UpdateShopOnServerStart = false
-const discountCounts = [1, 2];     // min = 2, max = 3
+const discountCounts = [2, 3];     // min = 2, max = 3
 const discountRates = [20, 30];    
 
 function countLines(filePath) {
