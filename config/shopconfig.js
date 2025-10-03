@@ -135,7 +135,7 @@ const userFriendlyDateConfig = [
   },
   
   {
-    dates:  "3 October - 1 November",
+    dates:  "2 October - 1 November",
     items: [
       { id: "I006", price: "250", offertext: "TRICK OR TREAT BANNER!", theme: "3" },
       { id: ["A038", "B029"], price: "300", offertext: "SKILLEDWEEN OFFER", normalprice: "350", theme: "3" },
