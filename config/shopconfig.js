@@ -2,8 +2,8 @@ const fs = require('fs');
 // Original price loading logic
 const priceFilePath = "./config/items.txt";
 
-const UpdateShopOnServerStart = true
-const discountCounts = [2, 3];     // min = 2, max = 3
+const UpdateShopOnServerStart = false
+const discountCounts = [1, 2];     // min = 2, max = 3
 const discountRates = [20, 30];    
 
 function countLines(filePath) {
@@ -119,7 +119,7 @@ function getExpirationTimestamp(endDate) {
 // ------------------ CONFIG ------------------
 const userFriendlyDateConfig = [
   {
-    dates: "1 January - 7 January", // <- easy to read
+    dates: "1 january - 31 december", // <- easy to read
     items: [
       { id: ["A001", "A002"], price: "0", currency: "coins", offertext: "STARTER PACK", normalprice: "350", theme: "2" },
     ],
@@ -127,7 +127,7 @@ const userFriendlyDateConfig = [
   },
 
   {
-    dates: "14 February - 15 February",
+    dates: "14 february - 15 february",
     items: [
       { id: ["I007", "P003"], price: "1", offertext: "VALENTINE OFFER ❤️", theme: "4" },
     ],
@@ -135,7 +135,7 @@ const userFriendlyDateConfig = [
   },
   
   {
-    dates:  "2 October - 1 November",
+    dates:  "28 october - 1 november",
     items: [
       { id: "I006", price: "250", offertext: "TRICK OR TREAT BANNER!", theme: "3" },
       { id: ["A038", "B029"], price: "300", offertext: "SKILLEDWEEN OFFER", normalprice: "350", theme: "3" },
@@ -144,7 +144,7 @@ const userFriendlyDateConfig = [
   },
   
   {
-    dates: "22 December - 27 December",
+    dates: "22 december - 27 december",
     items: [
       { id: "A024", price: "90", offertext: "CHRISTMAS SPECIAL!", theme: "2" },
     ],
@@ -152,9 +152,9 @@ const userFriendlyDateConfig = [
   },
 
   {
-    dates: "1 January",
+    dates: "1 january",
     items: [
-       { id: "A027", price: "90", offertext: "2025 NEW YEAR OFFER!", theme: "2" },
+       { id: "A027", price: "90", offertext: "2026 NEW YEAR OFFER!", theme: "2" },
     ],
     theme: "default"
   },
