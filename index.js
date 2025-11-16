@@ -262,7 +262,12 @@ async function processDailyItemsAndSaveToServer() {
 async function init() {
   await client.connect();
   await loadData();
-  if (UpdateShopOnServerStart) await selectDailyItems();
+  
+  if (UpdateShopOnServerStart) {
+    if (shouldUpdateDailyRotation()) {
+      await selectDailyItems();
+    }
+}
 
   cron.schedule("0 0 * * *", async () => {
     await selectDailyItems();
