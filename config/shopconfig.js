@@ -137,7 +137,7 @@ const userFriendlyDateConfig = [
    {
     dates: "19 november - 22 november",
     items: [
-      { id: ["I016", "I014"], price: "400", offertext: "VAULTED BANNERS OFFER", theme: "5" },
+      { id: ["I016", "I014"], offertext: "VAULTED BANNERS OFFER", theme: "5" },
     ],
     theme: "default"
   },
@@ -179,10 +179,14 @@ const specialDateConfig = userFriendlyDateConfig.reduce((acc, { dates, items }) 
     if (!acc[date]) acc[date] = [];
 
     items.forEach(({ id, price, currency, normalprice, offertext, theme, quantity}) => {
+      const getItemPriceSafe = (id) => getItemPrice(id) ?? 0;
+
       const itemIds = Array.isArray(id) ? id : [id];
+      const combinedNormalPrice = itemIds.reduce((total, itemId) => total + getItemPriceSafe(itemId), 0);
+      
       const item = {
         itemId: id,
-        price,
+        price: price ?? combinedNormalPrice,
         quantity: quantity || 1,
         currency: currency || "coins",
         offertext: offertext || "NEW ITEM",
@@ -191,7 +195,7 @@ const specialDateConfig = userFriendlyDateConfig.reduce((acc, { dates, items }) 
       };
 
       if (normalprice) {
-        item.normalprice = normalprice;
+        item.normalprice = normalprice ?? combinedNormalPrice;
       }
 
       acc[date].push(item);
