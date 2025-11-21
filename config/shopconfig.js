@@ -194,7 +194,7 @@ const specialDateConfig = userFriendlyDateConfig.reduce((acc, { dates, items }) 
         ...(theme != null && { theme }),
       };
 
-      if (normalprice) {
+      if (item.price !== combinedNormalPrice) {
         item.normalprice = normalprice ?? combinedNormalPrice;
       }
 
