@@ -135,9 +135,9 @@ const userFriendlyDateConfig = [
   },
 
    {
-    dates: "19 november - 23 november",
+    dates: "19 november - 22 november",
     items: [
-      { id: ["I016", "I015"], price: "1", offertext: "VAULTED BANNERS OFFER", theme: "4" },
+      { id: ["I016", "I014"], offertext: "VAULTED BANNERS OFFER", theme: "3" },
     ],
     theme: "default"
   },
