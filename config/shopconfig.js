@@ -2,7 +2,7 @@ const fs = require('fs');
 // Original price loading logic
 const priceFilePath = "./config/items.txt";
 
-const UpdateShopOnServerStart = true
+const UpdateShopOnServerStart = false
 const discountCounts = [1, 2];     // min = 2, max = 3
 const discountRates = [40, 50];    
 
@@ -154,7 +154,7 @@ const userFriendlyDateConfig = [
   {
     dates: "22 december - 27 december",
     items: [
-      { id: "A024", price: "90", offertext: "CHRISTMAS SPECIAL!", theme: "2" },
+      { id: "A024", price: "90", offertext: "WINTER FEST!", theme: "2" },
     ],
     theme: "default"
   },
