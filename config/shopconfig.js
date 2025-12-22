@@ -2,7 +2,7 @@ const fs = require('fs');
 // Original price loading logic
 const priceFilePath = "./config/items.txt";
 
-const UpdateShopOnServerStart = true
+const UpdateShopOnServerStart = false
 const discountCounts = [1, 2];     // min = 2, max = 3
 const discountRates = [40, 50];    
 
