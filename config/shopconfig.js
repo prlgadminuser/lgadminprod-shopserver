@@ -154,7 +154,7 @@ const userFriendlyDateConfig = [
   {
     dates: "22 december - 27 december",
     items: [
-      { id: "A024", price: "90", offertext: "WINTER FEST!", theme: "2" },
+      { id: "A024", offertext: "WINTER FEST!", theme: "2" },
     ],
     theme: "default"
   },
