@@ -113,7 +113,7 @@ function getOffersForDate(dateStr) {
 
       for (const entry of range.items) {
         const ids = Array.isArray(entry.id) ? entry.id : [entry.id];
-        console.log(ids)
+        //console.log(ids)
         const normalprice = ids.reduce((t, id) => t + getItemPrice(id), 0);
 
         offers.push({
