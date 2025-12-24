@@ -1,55 +1,14 @@
-const fs = require('fs');
-// Original price loading logic
-const priceFilePath = "./config/items.txt";
+const { valid_shopitems, not_allowed_specialitems, getItemPrice } = require("./items");
 
-const UpdateShopOnServerStart = false
-const discountCounts = [1, 2];     // min = 2, max = 3
-const discountRates = [40, 50];    
+const UpdateShopOnServerStart = true;
+const discountCounts = [1, 2];
+const discountRates = [40, 50];
 
-function countLines(filePath) {
-  try {
-    const data = fs.readFileSync(filePath, 'utf8');
-    const lines = data.split('\n');
-    // Filter out empty or whitespace-only lines
-    const nonEmptyLines = lines.filter(line => line.trim() !== '');
-    return nonEmptyLines.length;
-  } catch (err) {
-    console.error('Error reading file:', err);
-    return 0;
-  }
-}
-// Example usage
-const lineCount = countLines('./config/shopitems.txt');
-const itemPrefixes = ["A", "B", "A", "B", "A", "B", "I", "P"];
+const itemPrefixes = ["hat", "top", "hat", "top", "hat", "top", "banner", "pose"];
 
+const fallback_currency = "coins"
 
-
-function loadItemPrices() {
-  try {
-    const fileData = fs.readFileSync(priceFilePath, "utf8");
-    const items = fileData.split("\n").map(item => item.trim()).filter(Boolean);
-
-    const itemPrices = new Map();
-    items.forEach(item => {
-      const [itemId, price] = item.split(":");
-      if (itemId && price) {
-        itemPrices.set(itemId, parseInt(price, 10));
-      }
-    });
-
-    return itemPrices;
-  } catch (err) {
-    console.error("Error reading item prices from file:", err);
-    return new Map();
-  }
-}
-
-const itemPrices = loadItemPrices();
-
-function getItemPrice(itemId) {
-  return itemPrices.get(itemId) || null;
-}
-
+// ------------------ ITEM PRICE ------------------
 
 
 // ------------------ DATE PARSER ------------------
@@ -59,167 +18,127 @@ const monthMap = {
   september: 9, october: 10, november: 11, december: 12
 };
 
-function parseUserDate(input) {
-  // Normalize string (lowercase, trim, collapse spaces)
-  input = input.toLowerCase().trim().replace(/\s+/g, " ");
-
-  // Range like "4 december - 6 december"
-  if (input.includes("-")) {
-    const [start, end] = input.split("-").map(s => s.trim());
-
-    const { month: startMonth, day: startDay } = parseDayMonth(start);
-    const { month: endMonth, day: endDay } = parseDayMonth(end);
-
-    return {
-      startDate: `${startMonth}-${startDay}`,
-      endDate: `${endMonth}-${endDay}`
-    };
-  }
-
-  // Single date like "25 december"
-  const { month, day } = parseDayMonth(input);
-  return { startDate: `${month}-${day}`, endDate: `${month}-${day}` };
-}
-
 function parseDayMonth(str) {
-  const parts = str.split(" ");
-  if (parts.length !== 2) throw new Error(`Invalid date format: ${str}`);
-  const day = parseInt(parts[0], 10);
-  const monthName = parts[1].toLowerCase();
+  const [day, monthName] = str.trim().toLowerCase().split(" ");
   const month = monthMap[monthName];
   if (!month) throw new Error(`Unknown month: ${monthName}`);
-  return { month, day };
+  return { month, day: Number(day) };
 }
 
-// ------------------ HELPERS ------------------
-function generateDateRange(startDate, endDate) {
-  const start = new Date(`2025-${startDate}`);
-  const end = new Date(`2025-${endDate}`);
-  const dates = [];
-  while (start <= end) {
-    dates.push(formatDate(start));
-    start.setDate(start.getDate() + 1);
+function parseUserDateRange(input) {
+  input = input.toLowerCase().trim();
+
+  if (!input.includes("-")) {
+    const d = parseDayMonth(input);
+    return { start: d, end: d };
   }
-  return dates;
+
+  const [start, end] = input.split("-").map(s => parseDayMonth(s));
+  return { start, end };
 }
 
-function formatDate(date) {
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  return `${month}-${day}`;
+function toComparable({ month, day }) {
+  return month * 100 + day;
 }
 
-function getExpirationTimestamp(endDate) {
-  const [month, day] = endDate.split("-").map(Number);
-  const year = new Date().getFullYear();
-  const expirationDate = new Date(year, month - 1, day, 23, 59, 59);
-  return expirationDate.getTime();
+function getExpirationTimestamp({ month, day }) {
+  const year = new Date().getUTCFullYear();
+  return Date.UTC(year, month - 1, day, 23, 59, 59)
 }
 
 // ------------------ CONFIG ------------------
-const userFriendlyDateConfig = [
+const rawConfig = [
   {
-    dates: "1 january - 31 december", // <- easy to read
+    dates: "1 january - 31 december",
     items: [
-      { id: ["A001", "A002"], price: "0", currency: "coins", offertext: "STARTER PACK", normalprice: "350", theme: "2" },
+      { id: ["hat_explorer", "hat_weird_mask"], price: 0, offertext: "STARTER PACK", normalprice: 350, theme: "2" }
     ],
     theme: "default"
   },
-
   {
     dates: "14 february - 15 february",
     items: [
-      { id: ["I007", "P003"], price: "1", offertext: "VALENTINE OFFER ❤️", theme: "4" },
+      { id: ["banner_ninja", "banner_dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
     ],
     theme: "default"
   },
-
-   {
-    dates: "19 november - 22 november",
-    items: [
-      { id: ["I016", "I014"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" },
-    ],
-    theme: "default"
-  },
-  
   {
-    dates:  "28 october - 1 november",
+    dates: "19 december - 24 december",
     items: [
-      { id: "I006", price: "250", offertext: "TRICK OR TREAT BANNER!", theme: "3" },
-      { id: ["A038", "B029"], price: "300", offertext: "SKILLEDWEEN OFFER", normalprice: "350", theme: "3" },
+      { id: ["banner_storm", "banner_pinball"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" }
     ],
     theme: "default"
   },
-  
   {
     dates: "22 december - 27 december",
     items: [
-      { id: "A024", offertext: "WINTER FEST!", theme: "2" },
+      { id: "hat_santa", offertext: "WINTER FEST!", theme: "2" }
     ],
     theme: "default"
   },
-
   {
     dates: "1 january",
     items: [
-       { id: "A027", price: "90", offertext: "2026 NEW YEAR OFFER!", theme: "2" },
+      { id: "hat_new_year", price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
     ],
     theme: "default"
-  },
-  
+  }
 ];
 
-// ------------------ CONVERSION ------------------
-const specialDateConfig = userFriendlyDateConfig.reduce((acc, { dates, items }) => {
-  const { startDate, endDate } = parseUserDate(dates);
-  const dateRange = generateDateRange(startDate, endDate);
-  const expirationTimestamp = getExpirationTimestamp(endDate);
+// ------------------ PREPROCESS ------------------
+const specialDateRanges = rawConfig.map(({ dates, items, theme }) => {
+  const range = parseUserDateRange(dates);
 
-  dateRange.forEach(date => {
-    if (!acc[date]) acc[date] = [];
+  return {
+    start: toComparable(range.start),
+    end: toComparable(range.end),
+    expires_in: getExpirationTimestamp(range.end),
+    theme,
+    items
+  };
+});
 
-    items.forEach(({ id, price, currency, normalprice, offertext, theme, quantity}) => {
-      const getItemPriceSafe = (id) => getItemPrice(id) ?? 0;
+// ------------------ LOOKUP FUNCTION ------------------
+function getOffersForDate(dateStr) {
+  // dateStr = "12-24"
+  const [month, day] = dateStr.split("-").map(Number);
+  const value = month * 100 + day;
 
-      const itemIds = Array.isArray(id) ? id : [id];
-      const combinedNormalPrice = itemIds.reduce((total, itemId) => total + getItemPriceSafe(itemId), 0);
-      
-      const item = {
-        itemId: id,
-        price: price ?? combinedNormalPrice,
-        quantity: quantity || 1,
-        currency: currency || "coins",
-        offertext: offertext || "NEW ITEM",
-        expires_in: expirationTimestamp || 0,
-        ...(theme != null && { theme }),
-      };
+  const offers = [];
+  let theme = "default";
 
-      if (item.price !== combinedNormalPrice) {
-        item.normalprice = normalprice ?? combinedNormalPrice;
+  for (const range of specialDateRanges) {
+    if (value >= range.start && value <= range.end) {
+      theme = range.theme;
+
+      for (const entry of range.items) {
+        const ids = Array.isArray(entry.id) ? entry.id : [entry.id];
+        console.log(ids)
+        const normalprice = ids.reduce((t, id) => t + getItemPrice(id), 0);
+
+        offers.push({
+          itemId: entry.id,
+          price: entry.price ?? normalprice,
+          normalprice: entry.price ? entry.price : normalprice,
+          quantity: entry.quantity ?? 1,
+          currency: entry.currency ?? fallback_currency,
+          offertext: entry.offertext ?? "NEW ITEM",
+          expires_in: range.expires_in,
+          ...(entry.theme && { theme: entry.theme })
+        });
       }
+    }
+  }
 
-      acc[date].push(item);
-    });
-  });
+  return { theme, offers };
+}
 
-  return acc;
-}, {});
-
-const specialDateTheme = userFriendlyDateConfig.reduce((acc, { dates, theme }) => {
-  const { startDate, endDate } = parseUserDate(dates);
-  const dateRange = generateDateRange(startDate, endDate);
-  dateRange.forEach(date => {
-    acc[date] = theme;
-  });
-  return acc;
-}, {});
-
-// Export
+// ------------------ EXPORT ------------------
 module.exports = {
   itemPrefixes,
-  specialDateConfig,
-  specialDateTheme,
+  getOffersForDate,
   UpdateShopOnServerStart,
   discountCounts,
-  discountRates
+  discountRates,
+  fallback_currency
 };
