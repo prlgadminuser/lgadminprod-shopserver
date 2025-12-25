@@ -186,18 +186,18 @@ async function processDailyItemsAndSaveToServer() {
   const dateStr = `${now.getMonth() + 1}-${now.getDate()}`;
 
   // ------------------ SPECIAL OFFERS (NEW SYSTEM) ------------------
-  const { offers: specialItems, theme } = getOffersForDate(dateStr);
+  const { theme, specialoffers } = getOffersForDate(dateStr);
 
   // ------------------ FINAL ITEM LIST ------------------
   const discountedDaily = applyDiscount(dailyWithPrices);
 
   const finalItems = {
     ...Object.fromEntries(
-      specialItems.map((item, index) => [index + 1, item])
+      specialoffers.map((item, index) => [index + 1, item])
     ),
     ...Object.fromEntries(
       Object.entries(discountedDaily).map(
-        ([_, item], index) => [specialItems.length + index + 1, item]
+        ([_, item], index) => [specialoffers.length + index + 1, item]
       )
     )
   };

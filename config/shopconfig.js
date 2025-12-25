@@ -50,43 +50,43 @@ function getExpirationTimestamp({ month, day }) {
 const rawConfig = [
   {
     dates: "1 january - 31 december",
-    items: [
-      { id: ["hat_explorer", "hat_weird_mask"], price: 0, offertext: "STARTER PACK", normalprice: 350, theme: "2" }
+    offers: [
+      { items: ["hat_explorer", "hat_weird_mask"], price: 0, offertext: "STARTER PACK", normalprice: 350, theme: "2" }
     ],
     theme: "default"
   },
   {
     dates: "14 february - 15 february",
-    items: [
-      { id: ["banner_ninja", "banner_dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
+    offers: [
+      { items: ["banner_ninja", "banner_dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
     ],
     theme: "default"
   },
   {
     dates: "19 december - 24 december",
-    items: [
-      { id: ["banner_storm", "banner_pinball"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" }
+    offers: [
+      { items: ["banner_storm", "banner_pinball"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" }
     ],
     theme: "default"
   },
   {
     dates: "22 december - 27 december",
-    items: [
-      { id: "hat_santa", offertext: "WINTER FEST!", theme: "2" }
+    offers: [
+      { items: ["hat_santa"], offertext: "WINTER FEST!", theme: "2" }
     ],
     theme: "default"
   },
   {
     dates: "1 january",
-    items: [
-      { id: "hat_new_year", price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
+    offers: [
+      { items: ["hat_new_year"], price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
     ],
     theme: "default"
   }
 ];
 
 // ------------------ PREPROCESS ------------------
-const specialDateRanges = rawConfig.map(({ dates, items, theme }) => {
+const specialDateRanges = rawConfig.map(({ dates, offers, theme }) => {
   const range = parseUserDateRange(dates);
 
   return {
@@ -94,7 +94,7 @@ const specialDateRanges = rawConfig.map(({ dates, items, theme }) => {
     end: toComparable(range.end),
     expires_in: getExpirationTimestamp(range.end),
     theme,
-    items
+    offers
   };
 });
 
@@ -104,19 +104,19 @@ function getOffersForDate(dateStr) {
   const [month, day] = dateStr.split("-").map(Number);
   const value = month * 100 + day;
 
-  const offers = [];
+  const specialoffers = [];
   let theme = "default";
 
   for (const range of specialDateRanges) {
     if (value >= range.start && value <= range.end) {
       theme = range.theme;
 
-      for (const entry of range.items) {
-        const ids = Array.isArray(entry.id) ? entry.id : [entry.id];
+      for (const entry of range.offers) {
+        const items = entry.items
         //console.log(ids)
-        const normalprice = ids.reduce((t, id) => t + getItemPrice(id), 0);
+        const normalprice = items.reduce((t, items) => t + getItemPrice(items), 0);
 
-        offers.push({
+        specialoffers.push({
           items: entry.id,
           price: entry.price ?? normalprice,
           normalprice: entry.price ? entry.price : normalprice,
@@ -130,7 +130,7 @@ function getOffersForDate(dateStr) {
     }
   }
 
-  return { theme, offers };
+  return { theme, specialoffers };
 }
 
 // ------------------ EXPORT ------------------
