@@ -117,7 +117,7 @@ function getOffersForDate(dateStr) {
         const normalprice = ids.reduce((t, id) => t + getItemPrice(id), 0);
 
         offers.push({
-          itemId: entry.id,
+          items: entry.id,
           price: entry.price ?? normalprice,
           normalprice: entry.price ? entry.price : normalprice,
           quantity: entry.quantity ?? 1,

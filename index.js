@@ -202,9 +202,13 @@ async function processDailyItemsAndSaveToServer() {
     )
   };
 
-    const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
+
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0); // Reset time to 00:00:00 for consistency
   const t0am = currentDate.getTime();
+
+
+
 
   // ------------------ SAVE ------------------
   await shopcollection.updateOne(
@@ -229,7 +233,7 @@ async function init() {
 
   cron.schedule("0 0 * * *", async () => {
     await selectDailyItems();
-    console.log("Daily rotation updated.");
+    console.log("Daily rotation updated by cron.");
   }, { scheduled: true, timezone: "UTC" });
 }
 
