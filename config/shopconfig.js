@@ -1,6 +1,6 @@
 const { valid_shopitems, not_allowed_specialitems, getItemPrice } = require("./items");
 
-const UpdateShopOnServerStart = true;
+const UpdateShopOnServerStart = false;
 const discountCounts = [1, 2];
 const discountRates = [40, 50];
 
