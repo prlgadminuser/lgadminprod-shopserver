@@ -167,7 +167,7 @@ function getItemPrice(itemId) {
 function newOffer(entry, range, normalprice) {
 
  const offer = {
-          itemId: entry.id,
+          items: entry.id,
           price: entry.price ?? normalprice,
           normalprice: entry.price ? entry.price : normalprice,
           quantity: entry.quantity ?? 1,

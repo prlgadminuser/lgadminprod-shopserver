@@ -1,6 +1,6 @@
 const { valid_shopitems, not_allowed_specialitems, getItemPrice } = require("./items");
 
-const UpdateShopOnServerStart = false;
+const UpdateShopOnServerStart = true
 const discountCounts = [1, 2];
 const discountRates = [40, 50];
 
@@ -98,6 +98,7 @@ const specialDateRanges = rawConfig.map(({ dates, offers, theme }) => {
   };
 });
 
+
 // ------------------ LOOKUP FUNCTION ------------------
 function getOffersForDate(dateStr) {
   // dateStr = "12-24"
@@ -112,12 +113,13 @@ function getOffersForDate(dateStr) {
       theme = range.theme;
 
       for (const entry of range.offers) {
-        const items = entry.items
-        //console.log(ids)
+
+        const items = Array.isArray(entry.items) ? entry.items : [entry.items];
+
         const normalprice = items.reduce((t, items) => t + getItemPrice(items), 0);
 
         specialoffers.push({
-          items: entry.id,
+          items: items,
           price: entry.price ?? normalprice,
           normalprice: entry.price ? entry.price : normalprice,
           quantity: entry.quantity ?? 1,

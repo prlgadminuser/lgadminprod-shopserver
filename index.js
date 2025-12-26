@@ -193,22 +193,27 @@ async function processDailyItemsAndSaveToServer() {
 
   const finalItems = {
     ...Object.fromEntries(
-      specialoffers.map((item, index) => [index + 1, item])
+      specialoffers.map((items, index) => [index + 1, items])
     ),
     ...Object.fromEntries(
       Object.entries(discountedDaily).map(
-        ([_, item], index) => [specialoffers.length + index + 1, item]
+        ([_, items], index) => [specialoffers.length + index + 1, items]
       )
     )
   };
 
+const isValid = Object.values(finalItems).every((offer) =>
+  Array.isArray(offer.items)
+);
+
+if (!isValid) {
+  console.error("Validation failed: one or more offers has non-array items");
+  return; // do NOT update database
+}
 
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0); // Reset time to 00:00:00 for consistency
   const t0am = currentDate.getTime();
-
-
-
 
   // ------------------ SAVE ------------------
   await shopcollection.updateOne(
