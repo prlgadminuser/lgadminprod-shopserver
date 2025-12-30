@@ -5,7 +5,7 @@ const { getItemPrice, IsItemValid, IsItemTypeValid, newOffer } = require("./item
 
 
 const globalConfig = {
-  UpdateShopOnServerStart: true,
+  UpdateShopOnServerStart: false,
   discountCounts: [1, 2], // number (min, max) of offers which receive a discount
   discountRates: [40, 50], // number (min, max) how much % discount each discounted offer gets
   itemPrefixes: ["HAT", "TOP", "HAT", "TOP", "HAT", "TOP", "BANNER", "POSE"]
