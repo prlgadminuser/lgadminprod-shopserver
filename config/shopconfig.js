@@ -1,12 +1,20 @@
-const { valid_shopitems, not_allowed_specialitems, getItemPrice } = require("./items");
 
-const UpdateShopOnServerStart = true
-const discountCounts = [1, 2];
-const discountRates = [40, 50];
 
-const itemPrefixes = ["hat", "top", "hat", "top", "hat", "top", "banner", "pose"];
+const { getItemPrice, IsItemValid, IsItemTypeValid, newOffer } = require("./items");
 
-const fallback_currency = "coins"
+
+
+const globalConfig = {
+  UpdateShopOnServerStart: false,
+  discountCounts: [1, 2], // number (min, max) of offers which receive a discount
+  discountRates: [40, 50], // number (min, max) how much % discount each discounted offer gets
+  itemPrefixes: ["HAT", "TOP", "HAT", "TOP", "HAT", "TOP", "BANNER", "POSE"]
+}
+
+
+ for (const itemType of globalConfig.itemPrefixes) {
+  if (!IsItemTypeValid(itemType)) throw new Error(`itemtype ${itemType} is not existing/ not valid`);
+ }
 
 // ------------------ ITEM PRICE ------------------
 
@@ -51,35 +59,35 @@ const rawConfig = [
   {
     dates: "1 january - 31 december",
     offers: [
-      { items: ["hat_explorer", "hat_weird_mask"], price: 0, offertext: "STARTER PACK", normalprice: 350, theme: "2" }
+      { items: ["HAT:explorer", "HAT:weird_mask"], price: 0, offertext: "STARTER PACK", theme: "2" }
     ],
     theme: "default"
   },
   {
     dates: "14 february - 15 february",
     offers: [
-      { items: ["banner_ninja", "banner_dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
+      { items: ["BANNER:ninja", "BANNER:dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
     ],
     theme: "default"
   },
   {
     dates: "19 december - 24 december",
     offers: [
-      { items: ["banner_storm", "banner_pinball"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" }
+      { items: ["BANNER:storm", "BANNER:pinball"], price: 400, offertext: "VAULTED BANNERS OFFER", theme: "5" }
     ],
     theme: "default"
   },
   {
     dates: "22 december - 27 december",
     offers: [
-      { items: ["hat_santa"], offertext: "WINTER FEST!", theme: "2" }
+      { items: ["HAT:santa"], offertext: "WINTER FEST!", theme: "2" }
     ],
     theme: "default"
   },
   {
     dates: "1 january",
     offers: [
-      { items: ["hat_new_year"], price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
+      { items: ["HAT:new_year"], price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
     ],
     theme: "default"
   }
@@ -92,11 +100,22 @@ const specialDateRanges = rawConfig.map(({ dates, offers, theme }) => {
   return {
     start: toComparable(range.start),
     end: toComparable(range.end),
-    expires_in: getExpirationTimestamp(range.end),
+    expires_at: getExpirationTimestamp(range.end),
     theme,
     offers
   };
 });
+
+for (const dateData of specialDateRanges) {
+  for (const offer of dateData.offers) {
+    for (const item of offer.items) {
+      if (!IsItemValid(item)) {
+        throw new Error(`itemid ${item} is not existing`);
+      }
+    }
+  }
+}
+
 
 
 // ------------------ LOOKUP FUNCTION ------------------
@@ -114,20 +133,18 @@ function getOffersForDate(dateStr) {
 
       for (const entry of range.offers) {
 
-        const items = Array.isArray(entry.items) ? entry.items : [entry.items];
+        const items = Array.isArray(entry.items) ? entry.items : [entry.items]
 
         const normalprice = items.reduce((t, items) => t + getItemPrice(items), 0);
 
-        specialoffers.push({
-          items: items,
-          price: entry.price ?? normalprice,
-          normalprice: entry.price ? entry.price : normalprice,
-          quantity: entry.quantity ?? 1,
-          currency: entry.currency ?? fallback_currency,
-          offertext: entry.offertext ?? "NEW ITEM",
-          expires_in: range.expires_in,
-          ...(entry.theme && { theme: entry.theme })
-        });
+        entry.expires_at = range.expires_at
+        entry.normalprice = normalprice
+
+        const offerdata = entry
+
+        specialoffers.push(
+         newOffer(offerdata)
+        );
       }
     }
   }
@@ -137,10 +154,6 @@ function getOffersForDate(dateStr) {
 
 // ------------------ EXPORT ------------------
 module.exports = {
-  itemPrefixes,
   getOffersForDate,
-  UpdateShopOnServerStart,
-  discountCounts,
-  discountRates,
-  fallback_currency
+  globalConfig,
 };

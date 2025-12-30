@@ -1,114 +1,117 @@
-//const { shopcollection } = require("..");
 
+const validItemTypes = ["HAT", "TOP", "BANNER", "POSE"];
 
-
-
-const validItemTypes = ["hat", "top", "banner", "pose"];
-
-const not_allowed_specialitems = { // special items either exclusive or paid
-  hat_santa: { rarity: "legendary" },
-  top_santa: { rarity: "legendary" },
-  hat_new_year: { rarity: "rare" },
-  hat_explorer: { rarity: "common" },
-  hat_weird_mask: { rarity: "uncommon" },
-  hat_chrono: { rarity: "legendary" },
-  hat_netjump: { rarity: "uncommon" },
-  top_netjump: { rarity: "uncommon" },
-  banner_pinball: { rarity: "uncommon" },
-  banner_music: { rarity: "rare" },
-  banner_og: { rarity: "epic" },
-  banner_storm: { rarity: "legendary" },
-  banner_chrono: { rarity: "epic" },
-  pose_enchanted: { rarity: "legendary" },
-  hat_pumpkin: { rarity: "epic" },
-  top_pumpkin: { rarity: "epic" },
-  banner_halloween1: { rarity: "rare" },
+// ======================================================
+// ❌ NOT ALLOWED (exclusive / paid / special)
+// ======================================================
+const not_allowed_specialitems = {
+  "HAT:santa": { rarity: "legendary" },
+  "TOP:santa": { rarity: "legendary" },
+  "HAT:new_year": { rarity: "rare" },
+  "HAT:explorer": { rarity: "common" },
+  "HAT:weird_mask": { rarity: "uncommon" },
+  "HAT:chrono": { rarity: "legendary" },
+  "HAT:netjump": { rarity: "uncommon" },
+  "TOP:netjump": { rarity: "uncommon" },
+  "BANNER:pinball": { rarity: "uncommon" },
+  "BANNER:music": { rarity: "rare" },
+  "BANNER:og": { rarity: "epic" },
+  "BANNER:storm": { rarity: "legendary" },
+  "BANNER:chrono": { rarity: "epic" },
+  "POSE:enchanted": { rarity: "legendary" },
+  "HAT:pumpkin": { rarity: "epic" },
+  "TOP:pumpkin": { rarity: "epic" },
+  "BANNER:halloween1": { rarity: "rare" },
 };
 
-const valid_shopitems = { // items that are allowed to be in the shop rotation system
+// ======================================================
+// ✅ VALID SHOP ITEMS
+// ======================================================
+const valid_shopitems = {
   // ================= HATS =================
-  hat_gang_mask: { rarity: "uncommon" },
-  hat_hot_angel: { rarity: "epic" },
-  hat_gang_mask_glow: { rarity: "rare" },
-  hat_factory: { rarity: "common" },
-  hat_star_grey: { rarity: "common" },
-  hat_star_purple: { rarity: "uncommon" },
-  hat_star_bw: { rarity: "uncommon" },
-  hat_star_multi: { rarity: "rare" },
-  hat_twists: { rarity: "common" },
-  hat_sunny_fire: { rarity: "rare" },
-  hat_hot_cheeto: { rarity: "rare" },
-  hat_fuzzy_heart: { rarity: "uncommon" },
-  hat_cyber: { rarity: "epic" },
-  hat_clown: { rarity: "common" },
-  hat_dirtypixels: { rarity: "rare" },
-  hat_magic: { rarity: "epic" },
-  hat_glow_hero: { rarity: "epic" },
-  hat_chiller: { rarity: "rare" },
-  hat_tropical: { rarity: "epic" },
-  hat_dream_guard: { rarity: "legendary" },
-  hat_pixel_glasses: { rarity: "uncommon" },
-  hat_wizard: { rarity: "epic" },
-  hat_lucky_plucky: { rarity: "rare" },
-  hat_astro: { rarity: "epic" },
-  hat_diver: { rarity: "uncommon" },
-  hat_mod_cut: { rarity: "common" },
-  hat_arcade: { rarity: "rare" },
-  hat_chef: { rarity: "rare" },
-  hat_robot: { rarity: "legendary" },
-  hat_cracker: { rarity: "uncommon" },
-  hat_magicstone: { rarity: "epic" },
+  "HAT:gang_mask": { rarity: "uncommon" },
+  "HAT:hot_angel": { rarity: "epic" },
+  "HAT:gang_mask_glow": { rarity: "rare" },
+  "HAT:factory": { rarity: "common" },
+  "HAT:star_grey": { rarity: "common" },
+  "HAT:star_purple": { rarity: "uncommon" },
+  "HAT:star_bw": { rarity: "uncommon" },
+  "HAT:star_multi": { rarity: "rare" },
+  "HAT:twists": { rarity: "common" },
+  "HAT:sunny_fire": { rarity: "rare" },
+  "HAT:hot_cheeto": { rarity: "rare" },
+  "HAT:fuzzy_heart": { rarity: "uncommon" },
+  "HAT:cyber": { rarity: "epic" },
+  "HAT:clown": { rarity: "common" },
+  "HAT:dirtypixels": { rarity: "rare" },
+  "HAT:magic": { rarity: "epic" },
+  "HAT:glow_hero": { rarity: "epic" },
+  "HAT:chiller": { rarity: "rare" },
+  "HAT:tropical": { rarity: "epic" },
+  "HAT:dream_guard": { rarity: "legendary" },
+  "HAT:pixel_glasses": { rarity: "uncommon" },
+  "HAT:wizard": { rarity: "epic" },
+  "HAT:lucky_plucky": { rarity: "rare" },
+  "HAT:astro": { rarity: "epic" },
+  "HAT:diver": { rarity: "uncommon" },
+  "HAT:mod_cut": { rarity: "common" },
+  "HAT:arcade": { rarity: "rare" },
+  "HAT:chef": { rarity: "rare" },
+  "HAT:robot": { rarity: "legendary" },
+  "HAT:cracker": { rarity: "uncommon" },
+  "HAT:magicstone": { rarity: "epic" },
 
   // ================= TOPS =================
-  top_gang: { rarity: "uncommon" },
-  top_hot_angel: { rarity: "epic" },
-  top_factory: { rarity: "common" },
-  top_star_grey: { rarity: "common" },
-  top_star_purple: { rarity: "uncommon" },
-  top_star_bw: { rarity: "uncommon" },
-  top_star_multi: { rarity: "rare" },
-  top_basic: { rarity: "common" },
-  top_sunny_fire: { rarity: "rare" },
-  top_hot_cheeto: { rarity: "rare" },
-  top_fuzzy_heart: { rarity: "uncommon" },
-  top_cyber: { rarity: "epic" },
-  top_clown: { rarity: "common" },
-  top_pixel_nthing: { rarity: "rare" },
-  top_magic: { rarity: "epic" },
-  top_glow_hero: { rarity: "epic" },
-  top_chiller: { rarity: "rare" },
-  top_tropical: { rarity: "epic" },
-  top_dream_guard: { rarity: "legendary" },
-  top_wizard: { rarity: "epic" },
-  top_astro: { rarity: "epic" },
-  top_random: { rarity: "common" },
-  top_chef: { rarity: "rare" },
-  top_robot: { rarity: "legendary" },
-  top_cracker: { rarity: "uncommon" },
-  top_magicstone: { rarity: "epic" },
+  "TOP:gang": { rarity: "uncommon" },
+  "TOP:hot_angel": { rarity: "epic" },
+  "TOP:factory": { rarity: "common" },
+  "TOP:star_grey": { rarity: "common" },
+  "TOP:star_purple": { rarity: "uncommon" },
+  "TOP:star_bw": { rarity: "uncommon" },
+  "TOP:star_multi": { rarity: "rare" },
+  "TOP:basic": { rarity: "common" },
+  "TOP:sunny_fire": { rarity: "rare" },
+  "TOP:hot_cheeto": { rarity: "rare" },
+  "TOP:fuzzy_heart": { rarity: "uncommon" },
+  "TOP:cyber": { rarity: "epic" },
+  "TOP:clown": { rarity: "common" },
+  "TOP:pixel_nthing": { rarity: "rare" },
+  "TOP:magic": { rarity: "epic" },
+  "TOP:glow_hero": { rarity: "epic" },
+  "TOP:chiller": { rarity: "rare" },
+  "TOP:tropical": { rarity: "epic" },
+  "TOP:dream_guard": { rarity: "legendary" },
+  "TOP:wizard": { rarity: "epic" },
+  "TOP:astro": { rarity: "epic" },
+  "TOP:random": { rarity: "common" },
+  "TOP:chef": { rarity: "rare" },
+  "TOP:robot": { rarity: "legendary" },
+  "TOP:cracker": { rarity: "uncommon" },
+  "TOP:magicstone": { rarity: "epic" },
 
   // ================= BANNERS =================
-  banner_broken_dream: { rarity: "common" },
-  banner_beam: { rarity: "uncommon" },
-  banner_dark: { rarity: "uncommon" },
-  banner_fire: { rarity: "rare" },
-  banner_gears: { rarity: "common" },
-  banner_ninja: { rarity: "rare" },
-  banner_island: { rarity: "common" },
-  banner_spectra: { rarity: "rare" },
-  banner_chemical: { rarity: "rare" },
-  banner_sea: { rarity: "common" },
+  "BANNER:broken_dream": { rarity: "common" },
+  "BANNER:beam": { rarity: "uncommon" },
+  "BANNER:dark": { rarity: "uncommon" },
+  "BANNER:fire": { rarity: "rare" },
+  "BANNER:gears": { rarity: "common" },
+  "BANNER:ninja": { rarity: "rare" },
+  "BANNER:island": { rarity: "common" },
+  "BANNER:spectra": { rarity: "rare" },
+  "BANNER:chemical": { rarity: "rare" },
+  "BANNER:sea": { rarity: "common" },
 
   // ================= POSES =================
-  pose_rush: { rarity: "common" },
-  pose_mind: { rarity: "common" },
-  pose_ninja: { rarity: "rare" },
-  pose_itch: { rarity: "common" },
-  pose_jump: { rarity: "common" },
-  pose_rocket: { rarity: "epic" },
-  pose_space: { rarity: "rare" },
-  pose_losingIt: { rarity: "rare" },
+  "POSE:rush": { rarity: "common" },
+  "POSE:mind": { rarity: "common" },
+  "POSE:ninja": { rarity: "rare" },
+  "POSE:itch": { rarity: "common" },
+  "POSE:jump": { rarity: "common" },
+  "POSE:rocket": { rarity: "epic" },
+  "POSE:space": { rarity: "rare" },
+  "POSE:losingIt": { rarity: "rare" },
 };
+
 
 const rarityPrices = {
   common: 50,
@@ -123,7 +126,8 @@ const rarityPrices = {
 // Assign prices automatically based on rarity and validate items before start of server
 for (const itemId in valid_shopitems) {
   const item = valid_shopitems[itemId];
-  const itemType = itemId.split("_")[0]; // get the prefix before the underscore
+  const itemType = itemId.split(":")[0];
+   // get the prefix before the underscore
   if (!validItemTypes.includes(itemType))
     throw new Error(`Item type for ${itemId} is not valid`);
 
@@ -141,7 +145,7 @@ for (const itemId in valid_shopitems) {
 
 for (const itemId in not_allowed_specialitems) {
   const item = not_allowed_specialitems[itemId];
-  const itemType = itemId.split("_")[0]; // get the prefix before the underscore
+  const itemType = itemId.split(":")[0]; // get the prefix before the underscore
   if (!validItemTypes.includes(itemType))
     throw new Error(`Item type for ${itemId} is not valid`);
 
@@ -158,30 +162,56 @@ function IsItemValid(itemId) {
 
 }
 
+function IsItemTypeValid(itemType) {
+
+  return validItemTypes.includes(itemType)
+
+}
+
 function getItemPrice(itemId) {
   const item = valid_shopitems[itemId] || not_allowed_specialitems[itemId];
   if (!item?.price) throw new Error(`Price not found for ${itemId}`);
   return item.price;
 }
 
-function newOffer(entry, range, normalprice) {
+function newOffer(data) {
 
- const offer = {
-          items: entry.id,
-          price: entry.price ?? normalprice,
-          normalprice: entry.price ? entry.price : normalprice,
-          quantity: entry.quantity ?? 1,
-          currency: entry.currency ?? "coins",
-          offertext: entry.offertext ?? "NEW ITEM",
-          expires_in: range.expires_in,
-          ...(entry.theme && { theme: entry.theme })
-        }
-
+  if (
+  data.items == null ||
+  data.price == null ||
+  data.expires_at == null
+) {
+  throw new Error("One or more required fields are missing for creating the offer")
 }
+
+  const offer = {
+    items: Array.isArray(data.items) ? data.items : [data.items],
+    
+    pricing: {
+      currency: data.currency ?? "coins",
+      price: data.price,
+      normal: data.normalprice ?? data.price
+    },
+
+    data: {
+      offertext: data.offertext ?? "NEW ITEM",
+      expires_at: data.expires_at,
+      card_theme: data.theme ?? "default",
+    },
+  };
+
+  return offer
+}
+
+
+
+
 
 module.exports = {
   valid_shopitems,
   not_allowed_specialitems,
   IsItemValid,
+  IsItemTypeValid,
   getItemPrice,
+  newOffer,
 };
