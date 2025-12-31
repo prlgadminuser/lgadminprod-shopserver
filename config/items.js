@@ -75,7 +75,7 @@ const valid_shopitems = {
   "TOP:fuzzy_heart": { rarity: "uncommon" },
   "TOP:cyber": { rarity: "epic" },
   "TOP:clown": { rarity: "common" },
-  "TOP:pixel_nthing": { rarity: "rare" },
+  "TOP:dirtypixels": { rarity: "rare" },
   "TOP:magic": { rarity: "epic" },
   "TOP:glow_hero": { rarity: "epic" },
   "TOP:chiller": { rarity: "rare" },
@@ -215,3 +215,4 @@ module.exports = {
   getItemPrice,
   newOffer,
 };
+
