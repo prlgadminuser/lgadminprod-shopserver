@@ -188,7 +188,9 @@ async function selectDailyItems() {
 async function processDailyItemsAndSaveToServer() {
   const currentDate = new Date();
   currentDate.setHours(0, 0, 0, 0);
-  const t0am = currentDate.getTime();
+  const oneDay = 24 * 60 * 60 * 1000;
+  const t0am = currentDate.getTime() + oneDay;
+
   // ------------------ DAILY ITEMS ------------------
   const dailyWithPrices = Object.fromEntries(
     Object.entries(dailyItems).map(([key, itemId]) => {
