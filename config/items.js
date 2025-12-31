@@ -4,6 +4,7 @@ const validItemTypes = ["HAT", "TOP", "BANNER", "POSE"];
 // ======================================================
 // ❌ NOT ALLOWED (exclusive / paid / special)
 // ======================================================
+// hat_santa 
 const not_allowed_specialitems = {
   "HAT:santa": { rarity: "legendary" },
   "TOP:santa": { rarity: "legendary" },
@@ -112,6 +113,11 @@ const valid_shopitems = {
   "POSE:losingIt": { rarity: "rare" },
 };
 
+//const combinedKeys = [  ...Object.keys(valid_shopitems),...Object.keys(not_allowed_specialitems)];
+
+//console.log(combinedKeys);
+
+
 
 const rarityPrices = {
   common: 50,
@@ -215,4 +221,3 @@ module.exports = {
   getItemPrice,
   newOffer,
 };
-

@@ -186,10 +186,12 @@ async function selectDailyItems() {
 }
 
 async function processDailyItemsAndSaveToServer() {
-  const currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
-  const oneDay = 24 * 60 * 60 * 1000;
-  const t0am = currentDate.getTime() + oneDay;
+ const t0am = Date.UTC(
+  new Date().getUTCFullYear(),
+  new Date().getUTCMonth(),
+  new Date().getUTCDate() + 1
+);
+
 
   // ------------------ DAILY ITEMS ------------------
   const dailyWithPrices = Object.fromEntries(
@@ -273,6 +275,8 @@ app.use((err, req, res, next) => {
   console.error("An error occurred:", err);
   res.status(500).json({ error: "Unexpected server error" });
 });
+
+console.log(Date.now())
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
 init().catch(console.error);
