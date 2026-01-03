@@ -30,7 +30,7 @@ const client = new MongoClient(MONGO_URI, {
   },
 });
 
-const db = client.db("Cluster0");
+const db = client.db("Skilldown");
 const shopcollection = db.collection("serverconfig");
 
 const paths = {
@@ -276,7 +276,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Unexpected server error" });
 });
 
-console.log(Date.now())
 
 app.listen(port, () => console.log(`Server running on port ${port}`));
 init().catch(console.error);
