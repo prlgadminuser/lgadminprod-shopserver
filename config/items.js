@@ -120,11 +120,37 @@ const valid_shopitems = {
 
 
 const rarityPrices = {
-  common: 50,
-  uncommon: 90,
-  rare: 120,
-  epic: 150,
-  legendary: 200,
+  HAT: {
+    common: 50,
+    uncommon: 90,
+    rare: 120,
+    epic: 150,
+    legendary: 200,
+  },
+
+   TOP: {
+    common: 80,
+    uncommon: 120,
+    rare: 150,
+    epic: 200,
+    legendary: 300,
+  },
+
+   BANNER: {
+    common: 250,
+    uncommon: 300,
+    rare: 350,
+    epic: 400,
+    legendary: 500,
+  },
+
+   POSE: {
+    common: 250,
+    uncommon: 300,
+    rare: 350,
+    epic: 400,
+    legendary: 500,
+  },
 };
 
 
@@ -144,7 +170,7 @@ for (const itemId in valid_shopitems) {
 
   if (!item.rarity) throw new Error(`Item ${itemId} has no rarity set`);
 
-  item.price = rarityPrices[item.rarity]; // default undefined if rarity unknown
+  item.price = rarityPrices[itemType][item.rarity] // default undefined if rarity unknown
   if (!item.price)
     throw new Error(`Item rarity of ${itemId} not set or not valid`);
 }
@@ -157,7 +183,7 @@ for (const itemId in not_allowed_specialitems) {
 
   if (!item.rarity) throw new Error(`Item ${itemId} has no rarity set`);
 
-  item.price = rarityPrices[item.rarity]; // default undefined if rarity unknown
+  item.price = rarityPrices[itemType][item.rarity] // default undefined if rarity unknown
   if (!item.price)
     throw new Error(`Item rarity of ${itemId} not set or not valid`);
 }
