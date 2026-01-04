@@ -59,7 +59,7 @@ const rawConfig = [
   {
     dates: "1 january - 31 december",
     offers: [
-      { items: ["HAT:explorer", "HAT:weird_mask"], price: 0, offertext: "STARTER PACK", theme: "2" }
+      { items: ["HAT:explorer", "HAT:weird_mask"], price: 0, offertext: "STARTER PACK", theme: "special" }
     ],
     theme: "default"
   },
@@ -80,14 +80,14 @@ const rawConfig = [
   {
     dates: "22 december - 27 december",
     offers: [
-      { items: ["HAT:santa"], offertext: "WINTER FEST!", theme: "2" }
+      { items: ["HAT:santa"], offertext: "WINTER FEST!", theme: "special" }
     ],
     theme: "default"
   },
   {
     dates: "1 january",
     offers: [
-      { items: ["HAT:new_year"], price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "2" }
+      { items: ["HAT:new_year"], price: 90, offertext: "2026 NEW YEAR OFFER!", theme: "special" }
     ],
     theme: "default"
   }

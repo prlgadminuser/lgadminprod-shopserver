@@ -95,6 +95,7 @@ function applyDiscount(items) {
       item.pricing.normal = item.pricing.price;
       item.pricing.price = Math.round(item.pricing.price * (1 - discountRate));
       item.data.offertext = "SPECIAL OFFER";
+      item.data.card_theme = "special"
     });
   return items;
 }
