@@ -193,7 +193,7 @@ function getTodayUtcMidnightTimestamp() {
     now.getUTCFullYear(),
     now.getUTCMonth(),
     now.getUTCDate(),
-    0, 0, 0, 0
+    23, 59, 59
   ));
 
   return utcMidnight.getTime();
