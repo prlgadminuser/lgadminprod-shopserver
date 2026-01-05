@@ -186,12 +186,22 @@ async function selectDailyItems() {
   await processDailyItemsAndSaveToServer();
 }
 
+function getTodayUtcMidnightTimestamp() {
+  const now = new Date();
+
+  const utcMidnight = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    0, 0, 0, 0
+  ));
+
+  return utcMidnight.getTime();
+}
+
 async function processDailyItemsAndSaveToServer() {
- const t0am = Date.UTC(
-  new Date().getUTCFullYear(),
-  new Date().getUTCMonth(),
-  new Date().getUTCDate() + 1
-);
+
+   const t0am = getTodayUtcMidnightTimestamp
 
 
   // ------------------ DAILY ITEMS ------------------

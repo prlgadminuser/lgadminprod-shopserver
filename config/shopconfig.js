@@ -5,9 +5,9 @@ const { getItemPrice, IsItemValid, IsItemTypeValid, newOffer } = require("./item
 
 
 const globalConfig = {
-  UpdateShopOnServerStart:  true,
+  UpdateShopOnServerStart:  false,
   discountCounts: [1, 2], // number (min, max) of offers which receive a discount
-  discountRates: [20, 30], // number (min, max) how much % discount each discounted offer gets.
+  discountRates: [20, 30], // number (min, max) how much % discount each discounted offer gets
   itemPrefixes: ["HAT", "TOP", "HAT", "TOP", "HAT", "TOP", "BANNER", "POSE"]
 }
 
@@ -51,7 +51,7 @@ function toComparable({ month, day }) {
 
 function getExpirationTimestamp({ month, day }) {
   const year = new Date().getUTCFullYear();
-  return Date.UTC(year, month - 1, day, 0, 0, 0)
+  return Date.UTC(year, month - 1, day, 23, 59, 59)
 }
 
 // ------------------ CONFIG ------------------
