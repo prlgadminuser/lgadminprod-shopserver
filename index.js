@@ -201,7 +201,7 @@ function getTodayUtcMidnightTimestamp() {
 
 async function processDailyItemsAndSaveToServer() {
 
-   const t0am = getTodayUtcMidnightTimestamp
+   const t0am = getTodayUtcMidnightTimestamp()
 
 
   // ------------------ DAILY ITEMS ------------------
