@@ -108,6 +108,15 @@ async function saveDailyRotation() {
   );
 }
 
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+
 async function selectDailyItems() {
   const selectedItems = new Set();
   const availableSet = new Set(availableItems);
@@ -199,6 +208,8 @@ function getTodayUtcMidnightTimestamp() {
   return utcMidnight.getTime();
 }
 
+
+
 async function processDailyItemsAndSaveToServer() {
 
    const t0am = getTodayUtcMidnightTimestamp()
@@ -230,13 +241,16 @@ async function processDailyItemsAndSaveToServer() {
   // ------------------ FINAL ITEM LIST ------------------
   const discountedDaily = applyDiscount(dailyWithPrices);
 
+  const offerkeytype = 1
+
   const finalItems = {
     ...Object.fromEntries(
-      specialoffers.map((items, index) => [index + 1, items])
+      specialoffers.map((items, index) => [
+        offerkeytype === 1 ? index + 1 : uuidv4(), items])
     ),
     ...Object.fromEntries(
       Object.entries(discountedDaily).map(([_, items], index) => [
-        specialoffers.length + index + 1,
+       offerkeytype === 1 ? specialoffers.length + index + 1 : uuidv4(),
         items,
       ])
     ),
