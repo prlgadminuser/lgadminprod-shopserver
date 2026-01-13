@@ -64,9 +64,9 @@ const rawConfig = [
     theme: "default"
   },
   {
-    dates: "14 february - 15 february",
+    dates: "13 january - 26 january",
     offers: [
-      { items: ["BANNER:ninja", "BANNER:dark"], price: 1, offertext: "VALENTINE OFFER ❤️", theme: "4" }
+      { items: ["BANNER:ninja", "POSE:ninja"], offertext: "NINJA SET", theme: "2" }
     ],
     theme: "default"
   },
