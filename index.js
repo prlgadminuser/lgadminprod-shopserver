@@ -5,17 +5,15 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 const cron = require("node-cron");
 const fs = require("fs").promises;
 
+
 const {
-  specialDateConfig,
-  specialDateTheme,
   getOffersForDate,
-  globalConfig
-} = require("./config/shopconfig.js");
+} = require("./config/customofferlogic.js");
 const {
   valid_shopitems,
-  not_allowed_specialitems,
   newOffer,
 } = require("./config/items.js");
+const { globalConfig } = require("./config/config.js");
 
 const app = express();
 const port = process.env.PORT || 3090;
@@ -81,16 +79,17 @@ const getRandomItem = (array) =>
 function applyDiscount(items) {
   const keys = Object.keys(items);
   const numDiscounts =
-    Math.floor(Math.random() * (globalConfig.discountCounts[1] - globalConfig.discountCounts[0] + 1)) +
-    globalConfig.discountCounts[0];
-  const discountRate =
-    (Math.floor(Math.random() * (globalConfig.discountRates[1] - globalConfig.discountRates[0] + 1)) +
-      globalConfig.discountRates[0]) /
-    100;
-  keys
-    .sort(() => 0.5 - Math.random())
+    Math.floor(Math.random() * (globalConfig.dailyRotationDiscountsAmount[1] - globalConfig.dailyRotationDiscountsAmount[0] + 1)) +
+    globalConfig.dailyRotationDiscountsAmount[0];
+
+
+  keys.sort(() => 0.5 - Math.random())
     .slice(0, numDiscounts)
     .forEach((key) => {
+        const discountRate =
+    (Math.floor(Math.random() * (globalConfig.dailyRotationDiscountRates[1] - globalConfig.dailyRotationDiscountRates[0] + 1)) +
+      globalConfig.dailyRotationDiscountRates[0]) /
+    100;
       const item = items[key];
       item.pricing.normal = item.pricing.price;
       item.pricing.price = Math.round(item.pricing.price * (1 - discountRate));
@@ -123,7 +122,7 @@ async function selectDailyItems() {
 
   // Group items by prefix and filter out recently used items
   const itemsByPrefix = {};
-  [...new Set(globalConfig.itemPrefixes)].forEach((prefix) => {
+  [...new Set(globalConfig.dailyRotationitemPrefixesSelection)].forEach((prefix) => {
     itemsByPrefix[prefix] = [...availableSet].filter(
       (item) => item.startsWith(prefix) && !itemsUsedInLastDays.has(item)
     );
@@ -131,7 +130,7 @@ async function selectDailyItems() {
 
   // Count how many items to select per prefix
   const prefixCounts = {};
-  globalConfig.itemPrefixes.forEach((prefix) => {
+  globalConfig.dailyRotationitemPrefixesSelection.forEach((prefix) => {
     prefixCounts[prefix] = (prefixCounts[prefix] || 0) + 1;
   });
 
@@ -183,7 +182,7 @@ async function selectDailyItems() {
   // Flatten into dailyItems by position
   dailyItems = {};
   let pos = 1;
-  for (const prefix of globalConfig.itemPrefixes) {
+  for (const prefix of globalConfig.dailyRotationitemPrefixesSelection) {
     if (selectedByPrefix[prefix]?.length) {
       dailyItems[pos.toString()] = selectedByPrefix[prefix].shift();
       pos++;
@@ -283,7 +282,7 @@ async function init() {
   await client.connect();
   await loadData();
 
-  if (globalConfig.UpdateShopOnServerStart && shouldUpdateDailyRotation())
+  if (globalConfig.updateShopOnServerStart && shouldUpdateDailyRotation())
     await selectDailyItems();
 
   cron.schedule(

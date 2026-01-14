@@ -15,6 +15,7 @@ const not_allowed_specialitems = {
   "HAT:netjump": { rarity: "uncommon" },
   "TOP:netjump": { rarity: "uncommon" },
   "BANNER:pinball": { rarity: "uncommon" },
+  "HAT:arcade": { rarity: "rare" },
   "BANNER:music": { rarity: "rare" },
   "BANNER:og": { rarity: "epic" },
   "BANNER:storm": { rarity: "legendary" },
@@ -29,66 +30,87 @@ const not_allowed_specialitems = {
 // ✅ VALID SHOP ITEMS
 // ======================================================
 const valid_shopitems = {
-  // ================= HATS =================
   "HAT:gang_mask": { rarity: "uncommon" },
+  "TOP:gang": { rarity: "uncommon" },
+
   "HAT:hot_angel": { rarity: "epic" },
-  "HAT:gang_mask_glow": { rarity: "rare" },
+  "TOP:hot_angel": { rarity: "epic" },
+
   "HAT:factory": { rarity: "common" },
+  "TOP:factory": { rarity: "common" },
+
   "HAT:star_grey": { rarity: "common" },
+  "TOP:star_grey": { rarity: "common" },
+
   "HAT:star_purple": { rarity: "uncommon" },
+  "TOP:star_purple": { rarity: "uncommon" },
+
   "HAT:star_bw": { rarity: "uncommon" },
+  "TOP:star_bw": { rarity: "uncommon" },
+
   "HAT:star_multi": { rarity: "rare" },
-  "HAT:twists": { rarity: "common" },
+  "TOP:star_multi": { rarity: "rare" },
+
   "HAT:sunny_fire": { rarity: "rare" },
+  "TOP:sunny_fire": { rarity: "rare" },
+
   "HAT:hot_cheeto": { rarity: "rare" },
+  "TOP:hot_cheeto": { rarity: "rare" },
+
   "HAT:fuzzy_heart": { rarity: "uncommon" },
+  "TOP:fuzzy_heart": { rarity: "uncommon" },
+
   "HAT:cyber": { rarity: "epic" },
+  "TOP:cyber": { rarity: "epic" },
+
   "HAT:clown": { rarity: "common" },
+  "TOP:clown": { rarity: "common" },
+
   "HAT:dirtypixels": { rarity: "rare" },
+  "TOP:dirtypixels": { rarity: "rare" },
+
   "HAT:magic": { rarity: "epic" },
+  "TOP:magic": { rarity: "epic" },
+
   "HAT:glow_hero": { rarity: "epic" },
+  "TOP:glow_hero": { rarity: "epic" },
+
   "HAT:chiller": { rarity: "rare" },
+  "TOP:chiller": { rarity: "rare" },
+
   "HAT:tropical": { rarity: "epic" },
+  "TOP:tropical": { rarity: "epic" },
+
   "HAT:dream_guard": { rarity: "legendary" },
-  "HAT:pixel_glasses": { rarity: "uncommon" },
+  "TOP:dream_guard": { rarity: "legendary" },
+
   "HAT:wizard": { rarity: "epic" },
-  "HAT:lucky_plucky": { rarity: "rare" },
+  "TOP:wizard": { rarity: "epic" },
+
   "HAT:astro": { rarity: "epic" },
+  "TOP:astro": { rarity: "epic" },
+
+  "HAT:chef": { rarity: "rare" },
+  "TOP:chef": { rarity: "rare" },
+
+  "HAT:robot": { rarity: "legendary" },
+  "TOP:robot": { rarity: "legendary" },
+
+  "HAT:cracker": { rarity: "uncommon" },
+  "TOP:cracker": { rarity: "uncommon" },
+
+  "HAT:magicstone": { rarity: "epic" },
+  "TOP:magicstone": { rarity: "epic" },
+
+  // OTHER ITEMS
+  "HAT:twists": { rarity: "common" },
+  "HAT:gang_mask_glow": { rarity: "rare" },
+  "HAT:pixel_glasses": { rarity: "uncommon" },
+  "HAT:lucky_plucky": { rarity: "rare" },
   "HAT:diver": { rarity: "uncommon" },
   "HAT:mod_cut": { rarity: "common" },
-  "HAT:arcade": { rarity: "rare" },
-  "HAT:chef": { rarity: "rare" },
-  "HAT:robot": { rarity: "legendary" },
-  "HAT:cracker": { rarity: "uncommon" },
-  "HAT:magicstone": { rarity: "epic" },
-
-  // ================= TOPS =================
-  "TOP:gang": { rarity: "uncommon" },
-  "TOP:hot_angel": { rarity: "epic" },
-  "TOP:factory": { rarity: "common" },
-  "TOP:star_grey": { rarity: "common" },
-  "TOP:star_purple": { rarity: "uncommon" },
-  "TOP:star_bw": { rarity: "uncommon" },
-  "TOP:star_multi": { rarity: "rare" },
   "TOP:basic": { rarity: "common" },
-  "TOP:sunny_fire": { rarity: "rare" },
-  "TOP:hot_cheeto": { rarity: "rare" },
-  "TOP:fuzzy_heart": { rarity: "uncommon" },
-  "TOP:cyber": { rarity: "epic" },
-  "TOP:clown": { rarity: "common" },
-  "TOP:dirtypixels": { rarity: "rare" },
-  "TOP:magic": { rarity: "epic" },
-  "TOP:glow_hero": { rarity: "epic" },
-  "TOP:chiller": { rarity: "rare" },
-  "TOP:tropical": { rarity: "epic" },
-  "TOP:dream_guard": { rarity: "legendary" },
-  "TOP:wizard": { rarity: "epic" },
-  "TOP:astro": { rarity: "epic" },
   "TOP:random": { rarity: "common" },
-  "TOP:chef": { rarity: "rare" },
-  "TOP:robot": { rarity: "legendary" },
-  "TOP:cracker": { rarity: "uncommon" },
-  "TOP:magicstone": { rarity: "epic" },
 
   // ================= BANNERS =================
   "BANNER:broken_dream": { rarity: "common" },
@@ -112,6 +134,7 @@ const valid_shopitems = {
   "POSE:space": { rarity: "rare" },
   "POSE:losingIt": { rarity: "rare" },
 };
+
 
 //const combinedKeys = [  ...Object.keys(valid_shopitems),...Object.keys(not_allowed_specialitems)];
 
