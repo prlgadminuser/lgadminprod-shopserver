@@ -11,7 +11,7 @@ const customOffers = [
   {
     dates: "1 january - 27 january",
     offers: [
-      { items: ["BANNER:ninja", "BANNER:dark"], offertext: "VALENTINE OFFER ❤️", theme: "4" }
+      { items: ["BANNER:dark"], offertext: "SORRY DANA", theme: "2" }
     ],
     theme: "default"
   },
@@ -40,4 +40,5 @@ const customOffers = [
 
 module.exports = {
     customOffers
+
 }
