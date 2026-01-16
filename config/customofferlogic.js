@@ -93,8 +93,11 @@ function getOffersForDate(dateStr) {
         const items = Array.isArray(entry.items) ? entry.items : [entry.items]
 
         const normalprice = items.reduce((t, items) => t + getItemPrice(items), 0);
+        
+        if (entry.price === undefined) {
+          entry.price = normalprice
+        }
 
-        if (!entry.price) entry.price = normalprice
         entry.expires_at = range.expires_at
         entry.normalprice = normalprice
 
