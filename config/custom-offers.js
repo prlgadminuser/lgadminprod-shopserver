@@ -9,14 +9,7 @@ const customOffers = [
     theme: "default"
   },
   {
-    dates: "1 january - 27 january",
-    offers: [
-      { items: ["BANNER:dark"], offertext: "SORRY DANA", theme: "2" }
-    ],
-    theme: "default"
-  },
-  {
-    dates: "19 december - 24 december",
+    dates: "17 january - 24 january",
     offers: [
       { items: ["BANNER:storm", "BANNER:pinball"], offertext: "VAULTED BANNERS OFFER", theme: "5" }
     ],
@@ -42,3 +35,4 @@ module.exports = {
     customOffers
 
 }
+
