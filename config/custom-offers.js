@@ -23,6 +23,14 @@ const customOffers = [
     ],
     theme: "default"
   },
+
+  {
+    dates: "29 january - 20 february",
+    offers: [
+      { items: ["POSE:astro"], offertext: "ASTRONOMICAL OFFER", theme: "special", price: 300 }
+    ],
+    theme: "default"
+  },
   
   {
     dates: "1 january",
@@ -37,6 +45,7 @@ module.exports = {
     customOffers
 
 }
+
 
 
 
